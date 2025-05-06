@@ -14,7 +14,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        manualChunks: undefined // Disable code splitting
+        manualChunks: undefined // Disable code splittin
       }
     }
   }
