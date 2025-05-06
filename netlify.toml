@@ -2,4 +2,3 @@
   base = "client"
   publish = "client/dist"
   command = "npm install && npm run build"
-  
