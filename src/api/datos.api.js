@@ -22,7 +22,9 @@ export const getPedidos = () => {
       .then(response => response.data)
       .catch(error => {
         console.error('Error fetching tareas:', error);
-        throw error; // Propaga el error para manejarlo en el componente
+        throw error; // Propaga el error para manejarlo en el component e
       });
     }
 
+
+    
