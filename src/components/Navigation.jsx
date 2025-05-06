@@ -5,8 +5,8 @@ export function Navigation(){
 
         
         <div>
-        <Link to={"/Ventas"}> {/* Despliegue de datos  */}
-        <h1>Historial de Ventas</h1> 
+        <Link to={"/inventario"}> {/* Despliegue de datos  */}
+             <h1>Historial de Ventas</h1> 
         </Link>
         
         
