@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'https://backend-ny2d.onrender.com', // URL base del backend
+    baseURL: 'https://tiendaonline-backend-yaoo.onrender.com', // URL base del backend
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

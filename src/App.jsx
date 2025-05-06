@@ -1,18 +1,22 @@
-import {BrowserRouter,Routes,Route,Navigate} from 'react-router-dom'
-import { InventarioPedidos } from './Pages/InventarioPedidos/'; /**Despliegue de datos */
-import { CrearInvPedido } from './Pages/CrearInvPedido/'; /**Formulario Crear */
-import { Navigation } from './components/Navigation'; /**Menu de Navegacion */
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { InventarioPedidos } from './pages/InventarioPedidos.jsx';
+import { CrearInvPedido } from './pages/CrearInvPedido.jsx';
+import { Navigation } from './components/Navigation.jsx';
 
-function App(){
+function App() {
   return (
     <BrowserRouter>
-      <Navigation/>
-      <Routes>        
-	      <Route path="/" element={<Navigate to="/inventario"/>}/> 
-        <Route path="/inventario" element={<InventarioPedidos/>}/>       /**Despliegue de datos */
-        <Route path="/VentasCreate" element={<CrearInvPedido/>}/>       /**Formulario Crear */
-      </Routes>    
+      <Navigation />
+      <Routes>
+        {/* Redirección inicial */}
+        <Route path="/" element={<Navigate to="/inventario" />} />
+        
+        {/* Rutas principales */}
+        <Route path="/inventario" element={<InventarioPedidos />} />
+        <Route path="/ventas-create" element={<CrearInvPedido />} />
+      </Routes>
     </BrowserRouter>
   );
-} 
-export default App
+}
+
+export default App;
