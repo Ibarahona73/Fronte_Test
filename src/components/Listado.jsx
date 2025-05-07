@@ -72,7 +72,7 @@ export function Listado() {
                                 }}
                                 onError={(e) => {
                                     e.target.onerror = null;
-                                 //   e.target.src = 'https://via.placeholder.com/300x200?text=Imagen+no+disponible';
+                                 //   e.target.src = 'https://via.placeholder.com/300x200?text=Imagen+no+dispon';
                                 }}
                             />
                         </div>
