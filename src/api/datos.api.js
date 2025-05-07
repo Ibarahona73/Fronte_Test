@@ -8,7 +8,7 @@ const api = axios.create({
     },
   });
 
-export const getProductos = () => {
+export const getPedidos = () => {
     return api.get('/api/v1/pedidos/')  // Asegúrate de que esta ruta coincida con tu backend
       .then(response => response.data)
       .catch(error => {
@@ -17,7 +17,7 @@ export const getProductos = () => {
       });
     }
 
-export const getPedidos = () => {
+export const getProductos = () => {
     return api.get('/api/v1/productos/')  // Asegúrate de que esta ruta coincida con tu backend
       .then(response => response.data)
       .catch(error => {
