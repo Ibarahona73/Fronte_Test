@@ -9,7 +9,7 @@ export default defineConfig({
     historyApiFallback: true,
   },
   build: {
-    outDir: 'dist',
+    outDir: '../dist',
     assetsDir: 'assets',
     emptyOutDir: true,
     rollupOptions: {
