@@ -1,4 +1,9 @@
-echo '[build]
-base = "client"
-publish = "dist"
-command = "cd client && npm install && npm run build"' > netlify.toml
+[build]
+  base = "client"
+  publish = "dist"
+  command = "cd client && npm install && npm run build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
