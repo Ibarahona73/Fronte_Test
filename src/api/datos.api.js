@@ -26,5 +26,30 @@ export const getProductos = () => {
       });
     }
 
+export const getProducto = (id) => {
+    return api.get(`/api/v1/productos/${id}/`)  // Asegúrate de que esta ruta coincida con tu backend
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching tarea:', error);
+        throw error; // Propaga el error para manejarlo en el componente
+      });
+    }
 
+export const updateProducto = (id, data) => {
+    return api.put(`/api/v1/productos/${id}/`, data)  // Asegúrate de que esta ruta coincida con tu backend
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error updating tarea:', error);
+        throw error; // Propaga el error para manejarlo en el componente
+      });
+    }
+
+    export const deleteTarea = (id) => {
+      return api.delete(`/api/v1/productos/${id}/`)  // Asegúrate de que esta ruta coincida con tu backend
+        .then(response => response.data)
+        .catch(error => {
+          console.error('Error deleting tarea:', error);
+          throw error; // Propaga el error para manejarlo en el componente
+        });
+    }
     
