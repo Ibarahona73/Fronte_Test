@@ -17,6 +17,15 @@ export const getPedidos = () => {
       });
     }
 
+export const createProducto = (data) => {
+    return api.post('/api/v1/productos/', data)  // Asegúrate de que esta ruta coincida con tu backend
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error creating tarea:', error);
+        throw error; // Propaga el error para manejarlo en el componente
+      });
+    }
+
 export const getProductos = () => {
     return api.get('/api/v1/productos/')  // Asegúrate de que esta ruta coincida con tu backend
       .then(response => response.data)
@@ -44,7 +53,7 @@ export const updateProducto = (id, data) => {
       });
     }
 
-    export const deleteTarea = (id) => {
+    export const deleteProducto = (id) => {
       return api.delete(`/api/v1/productos/${id}/`)  // Asegúrate de que esta ruta coincida con tu backend
         .then(response => response.data)
         .catch(error => {

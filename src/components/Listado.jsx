@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getProductos } from "../api/datos.api";
 import { Navigation } from './Navigation';
+import React from 'react'
 
 export function Listado() {
     const [productos, setProductos] = useState([]); 
