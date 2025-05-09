@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getProductos } from "../api/datos.api";
 import { Navigation } from './Navigation';
-import React from 'react'
+import React from 'react';
 
 export function Listado() {
     const [productos, setProductos] = useState([]);
@@ -13,12 +13,6 @@ export function Listado() {
         tamaño: '',
         color: '',
     });
-    const API_BASE_URL = 'https://tiendaonline-backend-yaoo.onrender.com';
-
-    // Obtener valores únicos para los filtros
-    const uniqueColors = [...new Set(productos.map(p => p.colores).filter(Boolean))];
-    const uniqueCategories = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
-    const uniqueSizes = [...new Set(productos.map(p => p.tamaño).filter(Boolean))];
 
     // Mapeo de tamaños a abreviaciones
     const sizeMap = {
@@ -39,11 +33,6 @@ export function Listado() {
                 
                 const productosConImagenes = res.map(producto => ({
                     ...producto,
-                    imagen: producto.imagen 
-                        ? (producto.imagen.startsWith('http') 
-                            ? producto.imagen 
-                            : `${API_BASE_URL}${producto.imagen}`)
-                        : null,
                     // Normalizar tamaños
                     tamaño: sizeMap[producto.tamaño] || producto.tamaño
                 }));
@@ -62,6 +51,11 @@ export function Listado() {
         
         return () => { isMounted = false; };
     }, []);
+
+    // Obtener valores únicos para los filtros
+    const uniqueColors = [...new Set(productos.map(p => p.colores).filter(Boolean))];
+    const uniqueCategories = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
+    const uniqueSizes = [...new Set(productos.map(p => p.tamaño).filter(Boolean))];
 
     // Aplicar filtros
     useEffect(() => {
@@ -232,33 +226,36 @@ export function Listado() {
             <div style={{ 
                 flex: 1,
                 display: 'grid',
-                //gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '15px',
-                padding: '15px',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: '20px',
+                padding: '20px',
                 alignContent: 'flex-start'
             }}>
                 {filteredProductos.map(producto => (
                     <div key={producto.id} style={{
                         border: '1px solid #e0e0e0',
                         borderRadius: '8px',
-                        padding: '12px',
+                        padding: '15px',
                         display: 'flex',
                         flexDirection: 'column',
-                        height: '280px', // Altura fija para todos los productos
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                        height: '100%',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                        transition: 'transform 0.2s',
+                        ':hover': {
+                            transform: 'translateY(-5px)'
+                        }
                     }}>
                         {/* Imagen del producto */}
                         <div style={{
                             width: '100%',
-                            height: '120px',
+                            height: '180px',
                             backgroundColor: '#f5f5f5',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
                             borderRadius: '5px',
                             overflow: 'hidden',
-                            marginBottom: '10px'
+                            marginBottom: '15px'
                         }}>
                             {producto.imagen ? (
                                 <img 
@@ -270,86 +267,93 @@ export function Listado() {
                                         objectFit: 'cover'
                                     }}
                                     onError={(e) => {
-                                        e.target.onerror = null; // Evitar bucle infinito                                        
+                                        e.target.onerror = null;                                        
                                     }}
                                 />
                             ) : (
-                                <span style={{ color: '#999', fontSize: '0.8rem' }}>Sin imagen</span>
+                                <span style={{ color: '#999', fontSize: '0.9rem' }}>Sin imagen disponible</span>
                             )}
                         </div>
                         
-                        {/* Nombre del producto */}
-                        <div style={{
-                            fontSize: '1rem',
-                            fontWeight: 'bold',
-                            marginBottom: '8px',
-                            textAlign: 'center',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                        }}>
-                            {producto.nombre}
-                        </div>
-                        
-                        {/* Precio */}
-                        <div style={{ 
-                            marginBottom: '8px',
-                            textAlign: 'center'
-                        }}>
+                        {/* Información del producto */}
+                        <div style={{ flex: 1 }}>
+                            {/* Nombre del producto */}
                             <div style={{
-                                fontSize: '0.8rem',
-                                color: '#666'
-                            }}>Precio:</div>
-                            <div style={{
+                                fontSize: '1.1rem',
                                 fontWeight: 'bold',
-                                fontSize: '1.1rem'
-                            }}>${producto.precio}</div>
-                        </div>
-                        
-                        {/* Stock (solo si existe) */}
-                        {producto.cantidad_en_stock !== undefined && (
-                            <div style={{ 
-                                marginBottom: '8px',
+                                marginBottom: '10px',
                                 textAlign: 'center'
                             }}>
-                                <div style={{
-                                    fontSize: '0.8rem',
-                                    color: '#666'
-                                }}>Stock:</div>
-                                <div style={{
-                                    fontWeight: 'bold',
-                                    color: producto.cantidad_en_stock > 0 ? '#27ae60' : '#e74c3c',
-                                    fontSize: '0.9rem'
-                                }}>
-                                    {producto.cantidad_en_stock}
-                                </div>
+                                {producto.nombre}
                             </div>
-                        )}
-                        
-                        {/* Color */}
-                        {producto.colores && (
+                            
+                            {/* Precio y Stock */}
                             <div style={{ 
                                 display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginBottom: '10px'
+                            }}>
+                                <div>
+                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>Precio:</div>
+                                    <div style={{ fontWeight: 'bold' }}>${producto.precio}</div>
+                                </div>
+                                {producto.cantidad_en_stock !== undefined && (
+                                    <div>
+                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>Stock:</div>
+                                        <div style={{ 
+                                            fontWeight: 'bold',
+                                            color: producto.cantidad_en_stock > 0 ? '#27ae60' : '#e74c3c'
+                                        }}>
+                                            {producto.cantidad_en_stock}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Detalles adicionales */}
+                            <div style={{ 
+                                display: 'flex',
+                                justifyContent: 'space-between',
                                 marginTop: 'auto'
                             }}>
-                                <div style={{
-                                    fontSize: '0.8rem',
-                                    color: '#666',
-                                    marginRight: '6px'
-                                }}>Color:</div>
-                                <div style={{
-                                    width: '16px',
-                                    height: '16px',
-                                    backgroundColor: producto.colores,
-                                    borderRadius: '50%',
-                                    border: '1px solid #ddd'
-                                }} />
+                                {producto.tamaño && (
+                                    <div>
+                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>Tamaño:</div>
+                                        <div>{producto.tamaño}</div>
+                                    </div>
+                                )}
+                                
+                                {producto.colores && (
+                                    <div>
+                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>Color:</div>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <div style={{
+                                                width: '16px',
+                                                height: '16px',
+                                                backgroundColor: producto.colores,
+                                                borderRadius: '50%',
+                                                border: '1px solid #ddd',
+                                                marginRight: '5px'
+                                            }} />
+                                            {producto.colores}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 ))}
+                
+                {filteredProductos.length === 0 && (
+                    <div style={{ 
+                        gridColumn: '1 / -1',
+                        textAlign: 'center',
+                        padding: '40px',
+                        color: '#666'
+                    }}>
+                        No se encontraron productos con los filtros seleccionados
+                    </div>
+                )}
             </div>
         </div>
     );
