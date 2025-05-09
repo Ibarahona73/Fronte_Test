@@ -17,14 +17,30 @@ export const getPedidos = () => {
       });
     }
 
-export const createProducto = (data) => {
+/*export const createProducto = (data) => {
     return api.post('/api/v1/productos/', data)  // Asegúrate de que esta ruta coincida con tu backend
       .then(response => response.data)
       .catch(error => {
         console.error('Error creating tarea:', error);
         throw error; // Propaga el error para manejarlo en el componente
       });
-    }
+    } */
+
+      export const createProducto = async (formData) => {
+        try {
+            const response = await api.post('/api/v1/productos/', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            return response.data;
+         }  catch (error) {
+          if (error.response) {
+            console.error('Error response data:', error.response.data);
+          }
+          throw error;
+        }
+      };
 
 export const getProductos = () => {
     return api.get('/api/v1/productos/')  // Asegúrate de que esta ruta coincida con tu backend

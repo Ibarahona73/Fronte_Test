@@ -1,42 +1,73 @@
+ 
+
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { createProducto } from "../api/datos.api";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import React from 'react'
+import React from 'react';
 
 export function CrearInvPedido() {
-    const { register, handleSubmit, formState: { errors }, watch } = useForm();
+    const { register, handleSubmit, formState: { errors }, setValue, getValues } = useForm();
     const navigate = useNavigate();
     const [previewImages, setPreviewImages] = useState([]);
+    const [selectedColor, setSelectedColor] = useState([]); // Color seleccionado
 
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
+
+        // Actualizar vistas previas
         const imagePreviews = files.map(file => ({
             name: file.name,
             url: URL.createObjectURL(file)
         }));
         setPreviewImages(imagePreviews);
+
+        // Actualizar el valor del campo "imagenes" en react-hook-form
+        setValue("imagenes", files, { shouldValidate: true });
     };
 
     const onSubmit = async (data) => {
         try {
             const formData = new FormData();
             
+            // Agregar campos básicos
             formData.append('nombre', data.nombre);
-            formData.append('precio', data.precio);
-            formData.append('cantidad_en_stock', data.cantidad_en_stock);
+            formData.append('precio', parseFloat(data.precio));
+            formData.append('cantidad_en_stock', parseInt(data.cantidad_en_stock));
             formData.append('descripcion', data.descripcion);
+            formData.append('categoria', data.categoria);
+            formData.append('colores', selectedColor);
+            formData.append('tamaño', data.tamaño);
             
-            if (data.imagenes && data.imagenes.length > 0) {
-                Array.from(data.imagenes).forEach((file, index) => {
-                    formData.append(`imagen_${index}`, file);
-                });
+            // Agregar imágenes
+            const imagenes = getValues("imagenes");
+            if (imagenes && imagenes.length > 0) {
+              for (let i = 0; i < imagenes.length; i++) {
+                formData.append('imagen', imagenes[i]); // Cambiar a 'imagenes' si es necesario
+              }
             }
 
-            await createProducto(formData);
-            toast.success("Producto creado con éxito");
-            navigate("/inventario");
+            console.log("Datos a enviar:", {
+                nombre: data.nombre,
+                precio: data.precio,
+                cantidad_en_stock: data.cantidad_en_stock,
+                descripcion: data.descripcion,
+                categoria: data.categoria,
+                colores: selectedColor,
+                tamaño: data.tamaño,
+                imagenes: imagenes ? Array.from(imagenes).map(file => file.name) : [],
+            });
+
+            // Enviar datos al backend
+            const response = await createProducto(formData); // Asegúrate de que esta función envíe el FormData correctamente
+            
+            if (response.status === 201) { // Verifica el código de respuesta del backend
+                toast.success("Producto creado con éxito");
+                navigate("/inventario");
+            } else {
+                toast.error("Error al crear el producto");
+            }
         } catch (error) {
             console.error("Error al crear el producto:", error);
             toast.error("Error al crear el producto");
@@ -61,7 +92,6 @@ export function CrearInvPedido() {
                                 className="d-none"
                                 multiple
                                 accept="image/*"
-                                {...register("imagenes", { required: true })}
                                 onChange={handleImageChange}
                             />
                             <label htmlFor="imagenes" className="d-block text-center cursor-pointer py-3">
@@ -126,6 +156,52 @@ export function CrearInvPedido() {
                                 placeholder="Descripción detallada del producto"
                                 {...register("descripcion")}
                             ></textarea>
+                        </div>
+
+                        {/* Campo de categoría */}
+                        <div className="col-md-6">
+                            <label htmlFor="categoria" className="form-label fw-medium">Categoría</label>
+                            <select
+                                id="categoria"
+                                className={`form-select ${errors.categoria ? 'is-invalid' : ''}`}
+                                {...register("categoria", { required: true })}
+                            >
+                                <option value="">Selecciona una categoría</option>
+                                <option value="hombre">Hombre</option>
+                                <option value="mujer">Mujer</option>
+                            </select>
+                            {errors.categoria && <div className="invalid-feedback">Este campo es requerido</div>}
+                        </div>
+
+                        {/* Campo de colores */}
+                        <div className="col-md-6">
+                            <label htmlFor="colores" className="form-label fw-medium">Color</label>
+                            <input
+                                type="color"
+                                id="colores"
+                                className="form-control form-control-color"
+                                value={selectedColor}
+                                onChange={(e) => setSelectedColor(e.target.value)
+                                }
+                            />
+                        </div>
+
+                        {/* Campo de tamaño */}
+                        <div className="col-md-6">
+                            <label htmlFor="tamaño" className="form-label fw-medium">Tamaño</label>
+                            <select
+                                id="tamaño"
+                                className={`form-select ${errors.tamaño ? 'is-invalid' : ''}`}
+                                {...register("tamaño", { required: true })}
+                            >
+                                <option value="">Selecciona un tamaño</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                            </select>
+                            {errors.tamaño && <div className="invalid-feedback">Este campo es requerido</div>}
                         </div>
                     </div>
 

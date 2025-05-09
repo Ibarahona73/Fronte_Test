@@ -174,7 +174,10 @@ export function Listado() {
                                         borderRadius: '15px',
                                         fontSize: '0.9rem'
                                     }}>
-                                        Color: {producto.colores}
+                                        Color: <input type="color" value={producto.colores}
+                                         readOnly style={{ width: '20px', height: '20px', border: 'none',
+                                          borderRadius: '50%' }} />
+
                                     </span>
                                 )}
                             </div>
