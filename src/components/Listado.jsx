@@ -14,7 +14,6 @@ export function Listado() {
         color: '',
     });
 
-    // Mapeo de tamaños a abreviaciones
     const sizeMap = {
         'Pequeño': 'S',
         'Mediano': 'M',
@@ -33,7 +32,6 @@ export function Listado() {
                 
                 const productosConImagenes = res.map(producto => ({
                     ...producto,
-                    // Normalizar tamaños
                     tamaño: sizeMap[producto.tamaño] || producto.tamaño
                 }));
                 
@@ -52,12 +50,10 @@ export function Listado() {
         return () => { isMounted = false; };
     }, []);
 
-    // Obtener valores únicos para los filtros
     const uniqueColors = [...new Set(productos.map(p => p.colores).filter(Boolean))];
     const uniqueCategories = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
     const uniqueSizes = [...new Set(productos.map(p => p.tamaño).filter(Boolean))];
 
-    // Aplicar filtros
     useEffect(() => {
         let result = [...productos];
         
@@ -103,7 +99,6 @@ export function Listado() {
 
     return (
         <div style={{ display: 'flex' }}>
-            {/* Sidebar de filtros */}
             <div style={{
                 width: '250px',
                 padding: '20px',
@@ -116,7 +111,6 @@ export function Listado() {
             }}>
                 <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Filtros</h3>
                 
-                {/* Filtro por categoría */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Categoría</h4>
                     {uniqueCategories.map(cat => (
@@ -148,7 +142,6 @@ export function Listado() {
                     </button>
                 </div>
                 
-                {/* Filtro por tamaño */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Tamaño</h4>
                     {['S', 'M', 'L', 'XL', 'XXL'].map(size => (
@@ -180,7 +173,6 @@ export function Listado() {
                     </button>
                 </div>
                 
-                {/* Filtro por color */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Color</h4>
                     {uniqueColors.map(color => (
@@ -222,7 +214,6 @@ export function Listado() {
                 </div>
             </div>
             
-            {/* Listado de productos */}
             <div style={{ 
                 flex: 1,
                 display: 'grid',
@@ -245,7 +236,6 @@ export function Listado() {
                             transform: 'translateY(-5px)'
                         }
                     }}>
-                        {/* Imagen del producto */}
                         <div style={{
                             width: '100%',
                             height: '180px',
@@ -275,9 +265,7 @@ export function Listado() {
                             )}
                         </div>
                         
-                        {/* Información del producto */}
                         <div style={{ flex: 1 }}>
-                            {/* Nombre del producto */}
                             <div style={{
                                 fontSize: '1.1rem',
                                 fontWeight: 'bold',
@@ -287,7 +275,6 @@ export function Listado() {
                                 {producto.nombre}
                             </div>
                             
-                            {/* Precio y Stock */}
                             <div style={{ 
                                 display: 'flex',
                                 justifyContent: 'space-between',
@@ -310,7 +297,6 @@ export function Listado() {
                                 )}
                             </div>
                             
-                            {/* Detalles adicionales */}
                             <div style={{ 
                                 display: 'flex',
                                 justifyContent: 'space-between',

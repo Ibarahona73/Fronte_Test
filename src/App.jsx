@@ -16,6 +16,7 @@ function App() {
         <Route path="/" element={<Navigate to="/inventario" />} />
         <Route path="/inventario" element={<Listado />} />
         <Route path="/ventas-create" element={<CrearInvPedido />} />
+        <Route path="/editar/:id/" element={<CrearInvPedido/>}/>
       </Routes>
     </BrowserRouter>
   );
