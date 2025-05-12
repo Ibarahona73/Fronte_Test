@@ -8,23 +8,6 @@ const api = axios.create({
     },
   });
 
-export const getPedidos = () => {
-    return api.get('/api/v1/pedidos/')  // Asegúrate de que esta ruta coincida con tu backend
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error fetching tareas:', error);
-        throw error; // Propaga el error para manejarlo en el componente
-      });
-    }
-
-/*export const createProducto = (data) => {
-    return api.post('/api/v1/productos/', data)  // Asegúrate de que esta ruta coincida con tu backend
-      .then(response => response.data)
-      .catch(error => {
-        console.error('Error creating tarea:', error);
-        throw error; // Propaga el error para manejarlo en el componente
-      });
-    } */
 
       export const createProducto = async (formData) => {
         try {
@@ -94,3 +77,31 @@ export const updateProducto = async (id, data) => {
           throw error; // Propaga el error para manejarlo en el componente
         });
     }
+
+//Pedidos
+
+export const createPedido = async (formData) => {
+    try {
+        console.log("Datos enviados al backend:", formData);
+        const response = await api.post('/api/v1/pedidos/', formData, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+     }  catch (error) {
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+      }
+      throw error;
+    }
+  }
+
+export const getPedidos = () => {
+  return api.get('/api/v1/pedidos/')  // Asegúrate de que esta ruta coincida con tu backend
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching tareas:', error);
+      throw error; // Propaga el error para manejarlo en el componente
+    });
+  }

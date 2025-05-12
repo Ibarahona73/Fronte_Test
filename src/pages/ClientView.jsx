@@ -3,6 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from "react";
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export function ClientView() {
     const [productos, setProductos] = useState([]);
@@ -237,66 +238,71 @@ export function ClientView() {
                 alignItems: 'flex-start'
             }}>
                 {filteredProductos.map((producto) => (
-                    <div 
-                        key={producto.id} 
-                        className="product-item border p-3 d-flex flex-column align-items-center text-center"
-                        style={{
-                            borderRadius: '5px',
-                            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
-                            backgroundColor: '#fff',
-                            width: '300px'
-                        }}
+                    <Link
+                        to={`/producto/${producto.id}`}
+                        key={producto.id}
+                        style={{ textDecoration: 'none', color: 'inherit' }}
                     >
-                        {/* Imagen del producto */}
-                        {producto.imagen ? (
-                            <img 
-                                src={producto.imagen} 
-                                alt={producto.nombre} 
-                                style={{ 
-                                    width: '150px', 
-                                    height: '150px', 
-                                    objectFit: 'cover', 
-                                    borderRadius: '5px', 
-                                    marginBottom: '10px' 
-                                }} 
-                            />
-                        ) : (
-                            <div 
-                                style={{
-                                    width: '150px',
-                                    height: '150px',
-                                    backgroundColor: '#f0f0f0',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    borderRadius: '5px',
-                                    fontSize: '0.8rem',
-                                    color: '#888',
-                                    marginBottom: '10px'
-                                }}
-                            >
-                                Sin Imagen
-                            </div>
-                        )}
+                        <div 
+                            className="product-item border p-3 d-flex flex-column align-items-center text-center"
+                            style={{
+                                borderRadius: '5px',
+                                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                                backgroundColor: '#fff',
+                                width: '300px'
+                            }}
+                        >
+                            {/* Imagen del producto */}
+                            {producto.imagen ? (
+                                <img 
+                                    src={producto.imagen} 
+                                    alt={producto.nombre} 
+                                    style={{ 
+                                        width: '150px', 
+                                        height: '150px', 
+                                        objectFit: 'cover', 
+                                        borderRadius: '5px', 
+                                        marginBottom: '10px' 
+                                    }} 
+                                />
+                            ) : (
+                                <div 
+                                    style={{
+                                        width: '150px',
+                                        height: '150px',
+                                        backgroundColor: '#f0f0f0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: '5px',
+                                        fontSize: '0.8rem',
+                                        color: '#888',
+                                        marginBottom: '10px'
+                                    }}
+                                >
+                                    Sin Imagen
+                                </div>
+                            )}
 
-                        {/* Nombre del producto */}
-                        <h6 className="mb-1">{producto.nombre}</h6>
+                            {/* Nombre del producto */}
+                            <h6 className="mb-1">{producto.nombre}</h6>
 
-                        {/* Precio del producto */}
-                        <small className="text-muted d-block mb-1">
-                            ${Number(producto.precio).toFixed(2)}
-                        </small>
+                            {/* Precio del producto */}
+                            <small className="text-muted d-block mb-1">
+                                ${Number(producto.precio).toFixed(2)}
+                            </small>
 
-                        {/* Colores disponibles */}
-                        <small className="text-muted d-block mb-1">
-                            {producto.colores ? `${producto.colores.split(',').length} color options` : 'No colors available'}
-                        </small>
+                            {/* Colores disponibles */}
+                            <small className="text-muted d-block mb-1">
+                                {producto.colores ? `${producto.colores.split(',').length} color options` : 'No colors available'}
+                            </small>
 
-                        {/* Estado del stock */}
-                        <small className={`d-block mb-2 ${producto.cantidad_en_stock > 0 ? 'text-success' : 'text-danger'}`}>
-                            {producto.cantidad_en_stock > 0 ? 'In Stock' : 'Out of Stock'}
-                        </small>
-                    </div>
+                            {/* Estado del stock */}
+                            <small className={`d-block mb-2 ${producto.cantidad_en_stock > 0 ? 'text-success' : 'text-danger'}`}>
+                                {producto.cantidad_en_stock > 0 ? 'In Stock' : 'Out of Stock'}
+                            </small>
+                        </div>
+                    </Link>
                 ))}
 
                 {filteredProductos.length === 0 && (
