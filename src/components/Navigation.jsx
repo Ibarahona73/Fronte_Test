@@ -16,8 +16,8 @@ export function Navigation() {
                         <li className="nav-item">
                             <Link className="nav-link text-white" to="/">Inicio</Link>
                         </li>
-                        {/* Mostrar botones solo si no estás en ClientView */}
-                        {location.pathname !== '/' && (
+                        {/* Ocultar otros botones si estás en VisualProducto */}
+                        {location.pathname === '/' ? (
                             <>
                                 <li className="nav-item">
                                     <Link className="nav-link text-white" to="/inventario">Inventario</Link>
@@ -26,7 +26,7 @@ export function Navigation() {
                                     <Link className="nav-link text-white" to="/ventas-create">Crear Venta</Link>
                                 </li>
                             </>
-                        )}
+                        ) : null}
                     </ul>
                 </div>
             </div>

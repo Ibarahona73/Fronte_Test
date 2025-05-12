@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProducto } from '../api/datos.api';
+import { Navigation } from '../components/Navigation';
 
 export function VisualProducto() {
     const { id } = useParams();
@@ -36,6 +37,9 @@ export function VisualProducto() {
 
     return (
         <div>
+            
+            
+
             {/* Contenido */}
             <div style={{ padding: '20px', display: 'flex', gap: '20px' }}>
                 {/* Imagen principal */}
@@ -43,7 +47,7 @@ export function VisualProducto() {
                     <img
                         src={producto.imagen_base64 ? `data:image/jpeg;base64,${producto.imagen_base64}` : 'https://via.placeholder.com/300'}
                         alt={producto.nombre}
-                        style={{ width: '95%', borderRadius: '5px' }}
+                        style={{ width: '100%', borderRadius: '5px' }}
                     />
                     <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                         {/* Miniaturas */}
@@ -66,7 +70,7 @@ export function VisualProducto() {
                 </div>
 
                 {/* Detalles del producto */}
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, marginLeft: '50px' }}>
                     <h1>{producto.nombre}</h1>
                     <h2 style={{ color: '#3498db' }}>
                         ${producto.precio ? Number(producto.precio).toFixed(2) : '0.00'}
@@ -132,8 +136,7 @@ export function VisualProducto() {
                         />
                     </div>
                     <button
-                        style={{       
-                            marginLeft: '10px',                       
+                        style={{
                             backgroundColor: '#3498db',
                             color: '#fff',
                             padding: '10px 20px',
@@ -147,12 +150,10 @@ export function VisualProducto() {
                     <button
                         onClick={() => navigate(-1)}
                         style={{
-                            display: 'flex',
-                            marginTop: '20px',
-                            marginLeft: '10px',                            
+                            marginLeft: '10px',
                             backgroundColor: '#ccc',
                             color: '#000',
-                            padding: '10px 45px',
+                            padding: '10px 20px',
                             border: 'none',
                             borderRadius: '5px',
                             cursor: 'pointer',
