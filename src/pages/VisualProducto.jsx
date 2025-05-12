@@ -2,14 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProducto } from '../api/datos.api';
 import { Navigation } from '../components/Navigation';
+import { useCart } from '../components/CartContext';
+
 
 export function VisualProducto() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { addToCart } = useCart();
     const [producto, setProducto] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [cantidad, setCantidad] = useState(1);
+    const [showCartPopup, setShowCartPopup] = useState(false);
 
     useEffect(() => {
         async function fetchProducto() {
@@ -35,14 +39,15 @@ export function VisualProducto() {
         setCantidad(value);
     };
 
-    return (
-        <div>
-            
-            
+    const handleAddToCart = () => {
+        addToCart(producto, cantidad);
+        setShowCartPopup(true);
+        setTimeout(() => setShowCartPopup(false), 4000); // Ocultar el popup después de 3 segundos
+    };
 
-            {/* Contenido */}
+    return (
+        <div>            
             <div style={{ padding: '20px', display: 'flex', gap: '20px' }}>
-                {/* Imagen principal */}
                 <div style={{ flex: 1 }}>
                     <img
                         src={producto.imagen_base64 ? `data:image/jpeg;base64,${producto.imagen_base64}` : 'https://via.placeholder.com/300'}
@@ -68,8 +73,6 @@ export function VisualProducto() {
                         ))}
                     </div>
                 </div>
-
-                {/* Detalles del producto */}
                 <div style={{ flex: 1, marginLeft: '50px' }}>
                     <h1>{producto.nombre}</h1>
                     <h2 style={{ color: '#3498db' }}>
@@ -136,6 +139,7 @@ export function VisualProducto() {
                         />
                     </div>
                     <button
+                        onClick={handleAddToCart}
                         style={{
                             backgroundColor: '#3498db',
                             color: '#fff',
@@ -163,6 +167,34 @@ export function VisualProducto() {
                     </button>
                 </div>
             </div>
+
+            {/* Popup del carrito */}
+            {showCartPopup && (
+                <div style={{
+                    position: 'fixed',
+                    top: '10px',
+                    right: '10px',
+                    backgroundColor: '#fff',
+                    border: '1px solid #ddd',
+                    borderRadius: '5px',
+                    padding: '10px',
+                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+                }}>
+                    <p>Item Añadido al Carrito</p>
+                    <p>{producto.nombre}</p>
+                    <p>Cant: {cantidad}</p>
+                    <button onClick={() => navigate('/carrito')} style={{
+                        backgroundColor: '#3498db',
+                        color: '#fff',
+                        padding: '5px 10px',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                    }}>
+                        Ver Carrito
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
