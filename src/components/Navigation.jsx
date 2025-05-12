@@ -17,7 +17,7 @@ export function Navigation() {
                             <Link className="nav-link text-white" to="/">Inicio</Link>
                         </li>
                         {/* Ocultar otros botones si estás en VisualProducto */}
-                        {location.pathname === '/' ? (
+                        {!(location.pathname === '/' || location.pathname.startsWith('/producto/')) ? (
                             <>
                                 <li className="nav-item">
                                     <Link className="nav-link text-white" to="/inventario">Inventario</Link>
