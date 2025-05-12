@@ -1,71 +1,35 @@
-import { Link } from "react-router-dom";
-import React from 'react'
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 export function Navigation() {
+    const location = useLocation();
+
     return (
-        <div style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 100,
-            backgroundColor: '#2c3e50',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-        }}>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '15px 20px',
-                borderBottom: '1px solid #34495e'
-            }}>
-                <Link 
-                    to="/" 
-                    style={{
-                        color: 'white',
-                        textDecoration: 'none',
-                        fontSize: '1.2rem',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                    }}
-                >
-                    <span>Tienda Online</span>
-                </Link>
-                
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    <Link 
-                        to="/inventario" 
-                        style={{
-                            color: 'white',
-                            textDecoration: 'none',
-                            padding: '8px 15px',
-                            borderRadius: '4px',
-                            transition: 'all 0.3s ease',
-                            ':hover': {
-                                backgroundColor: '#34495e'
-                            }
-                        }}
-                    >
-                        Inventario
-                    </Link>
-                    
-                    <Link 
-                        to="/ventas-create" 
-                        style={{
-                            color: 'white',
-                            textDecoration: 'none',
-                            padding: '8px 15px',
-                            borderRadius: '4px',
-                            transition: 'all 0.3s ease',
-                            ':hover': {
-                                backgroundColor: '#34495e'
-                            }
-                        }}
-                    >
-                        Crear Venta
-                    </Link>
+        <nav className="navbar navbar-expand-lg" style={{ backgroundColor: '#a21d22' }}>
+            <div className="container-fluid">
+                <Link className="navbar-brand text-white" to="/">Tienda Online</Link>
+                <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span className="navbar-toggler-icon"></span>
+                </button>
+                <div className="collapse navbar-collapse" id="navbarNav">
+                    <ul className="navbar-nav">
+                        <li className="nav-item">
+                            <Link className="nav-link text-white" to="/">Inicio</Link>
+                        </li>
+                        {/* Mostrar botones solo si no estás en ClientView */}
+                        {location.pathname !== '/' && (
+                            <>
+                                <li className="nav-item">
+                                    <Link className="nav-link text-white" to="/inventario">Inventario</Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link className="nav-link text-white" to="/ventas-create">Crear Venta</Link>
+                                </li>
+                            </>
+                        )}
+                    </ul>
                 </div>
             </div>
-        </div>
+        </nav>
     );
 }
