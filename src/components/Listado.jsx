@@ -1,6 +1,10 @@
+import { getProductos, deleteProducto } from "../api/datos.api";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import { useNavigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from "react";
-import { getProductos } from "../api/datos.api";
 import { Navigation } from './Navigation';
+import { toast } from "react-hot-toast";
 import React from 'react';
 
 export function Listado() {
@@ -14,6 +18,9 @@ export function Listado() {
         color: '',
     });
 
+    const navigate = useNavigate();
+
+    // Mapeo de tamaños a abreviaciones
     const sizeMap = {
         'Pequeño': 'S',
         'Mediano': 'M',
@@ -32,7 +39,11 @@ export function Listado() {
                 
                 const productosConImagenes = res.map(producto => ({
                     ...producto,
-                    tamaño: sizeMap[producto.tamaño] || producto.tamaño
+                    // Normalizar tamaños
+                    tamaño: sizeMap[producto.tamaño] || producto.tamaño,
+                    imagen: producto.imagen_base64 
+                        ? `data:image/jpeg;base64,${producto.imagen_base64}`
+                        : null
                 }));
                 
                 setProductos(productosConImagenes);
@@ -50,10 +61,12 @@ export function Listado() {
         return () => { isMounted = false; };
     }, []);
 
+    // Obtener valores únicos para los filtros
     const uniqueColors = [...new Set(productos.map(p => p.colores).filter(Boolean))];
     const uniqueCategories = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
     const uniqueSizes = [...new Set(productos.map(p => p.tamaño).filter(Boolean))];
 
+    // Aplicar filtros
     useEffect(() => {
         let result = [...productos];
         
@@ -71,6 +84,20 @@ export function Listado() {
         
         setFilteredProductos(result);
     }, [filters, productos]);
+
+    const handleDelete = async (id) => {
+        if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+            try {
+                await deleteProducto(id); // Llama a tu API para eliminar el producto
+                toast.success("Producto eliminado exitosamente");
+                // Actualiza la lista de productos si es necesario
+                setProductos((prev) => prev.filter((producto) => producto.id !== id));
+            } catch (error) {
+                console.error("Error al eliminar el producto:", error);
+                toast.error("Error al eliminar el producto");
+            }
+        }
+    };
 
     if (loading) return (
         <div>            
@@ -99,6 +126,7 @@ export function Listado() {
 
     return (
         <div style={{ display: 'flex' }}>
+            {/* Sidebar de filtros */}
             <div style={{
                 width: '250px',
                 padding: '20px',
@@ -111,6 +139,7 @@ export function Listado() {
             }}>
                 <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Filtros</h3>
                 
+                {/* Filtro por categoría */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Categoría</h4>
                     {uniqueCategories.map(cat => (
@@ -142,6 +171,7 @@ export function Listado() {
                     </button>
                 </div>
                 
+                {/* Filtro por tamaño */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Tamaño</h4>
                     {['S', 'M', 'L', 'XL', 'XXL'].map(size => (
@@ -173,6 +203,7 @@ export function Listado() {
                     </button>
                 </div>
                 
+                {/* Filtro por color */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Color</h4>
                     {uniqueColors.map(color => (
@@ -214,128 +245,101 @@ export function Listado() {
                 </div>
             </div>
             
+            {/* Listado de productos */}
             <div style={{ 
                 flex: 1,
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                gap: '20px',
+                display: 'flex', // Cambiado a flex
+                flexWrap: 'wrap', // Permite que los productos pasen a la siguiente fila
+                gap: '20px', // Espaciado entre productos
                 padding: '20px',
-                alignContent: 'flex-start'
+                justifyContent: 'flex-start', // Alinea los productos al inicio
+                alignItems: 'flex-start' // Alinea los productos verticalmente al inicio
             }}>
-                {filteredProductos.map(producto => (
-                    <div key={producto.id} style={{
-                        border: '1px solid #e0e0e0',
-                        borderRadius: '8px',
-                        padding: '15px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        height: '100%',
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-                        transition: 'transform 0.2s',
-                        ':hover': {
-                            transform: 'translateY(-5px)'
-                        }
-                    }}>
-                        <div style={{
-                            width: '100%',
-                            height: '180px',
-                            backgroundColor: '#f5f5f5',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
+                {filteredProductos.map((producto) => (
+                    <div 
+                        key={producto.id} 
+                        className="product-item border p-3 d-flex flex-column align-items-center text-center"
+                        style={{
                             borderRadius: '5px',
-                            overflow: 'hidden',
-                            marginBottom: '15px'
-                        }}>
-                            {producto.imagen ? (
-                                <img 
-                                    src={producto.imagen} 
-                                    alt={producto.nombre}
-                                    style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover'
-                                    }}
-                                    onError={(e) => {
-                                        e.target.onerror = null;                                        
-                                    }}
-                                />
-                            ) : (
-                                <span style={{ color: '#999', fontSize: '0.9rem' }}>Sin imagen disponible</span>
-                            )}
-                        </div>
-                        
-                        <div style={{ flex: 1 }}>
-                            <div style={{
-                                fontSize: '1.1rem',
-                                fontWeight: 'bold',
-                                marginBottom: '10px',
-                                textAlign: 'center'
-                            }}>
-                                {producto.nombre}
+                            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                            backgroundColor: '#fff',
+                            width: '300px' // Ancho fijo para cada producto
+                        }}
+                    >
+                        {/* Imagen del producto */}
+                        {producto.imagen ? (
+                            <img 
+                                src={producto.imagen} 
+                                alt={producto.nombre} 
+                                style={{ 
+                                    width: '150px', 
+                                    height: '150px', 
+                                    objectFit: 'cover', 
+                                    borderRadius: '5px', 
+                                    marginBottom: '10px' 
+                                }} 
+                            />
+                        ) : (
+                            <div 
+                                style={{
+                                    width: '150px',
+                                    height: '150px',
+                                    backgroundColor: '#f0f0f0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '5px',
+                                    fontSize: '0.8rem',
+                                    color: '#888',
+                                    marginBottom: '10px'
+                                }}
+                            >
+                                Sin Imagen
                             </div>
-                            
-                            <div style={{ 
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                marginBottom: '10px'
-                            }}>
-                                <div>
-                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>Precio:</div>
-                                    <div style={{ fontWeight: 'bold' }}>${producto.precio}</div>
-                                </div>
-                                {producto.cantidad_en_stock !== undefined && (
-                                    <div>
-                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>Stock:</div>
-                                        <div style={{ 
-                                            fontWeight: 'bold',
-                                            color: producto.cantidad_en_stock > 0 ? '#27ae60' : '#e74c3c'
-                                        }}>
-                                            {producto.cantidad_en_stock}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            
-                            <div style={{ 
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                marginTop: 'auto'
-                            }}>
-                                {producto.tamaño && (
-                                    <div>
-                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>Tamaño:</div>
-                                        <div>{producto.tamaño}</div>
-                                    </div>
-                                )}
-                                
-                                {producto.colores && (
-                                    <div>
-                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>Color:</div>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <div style={{
-                                                width: '16px',
-                                                height: '16px',
-                                                backgroundColor: producto.colores,
-                                                borderRadius: '50%',
-                                                border: '1px solid #ddd',
-                                                marginRight: '5px'
-                                            }} />
-                                            {producto.colores}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                        )}
+
+                        {/* Nombre del producto */}
+                        <h6 className="mb-1">{producto.nombre}</h6>
+
+                        {/* Precio del producto */}
+                        <small className="text-muted d-block mb-1">
+                            ${Number(producto.precio).toFixed(2)}
+                        </small>
+
+                        {/* Colores disponibles */}
+                        <small className="text-muted d-block mb-1">
+                            {producto.colores ? `${producto.colores.split(',').length} color options` : 'No colors available'}
+                        </small>
+
+                        {/* Estado del stock */}
+                        <small className={`d-block mb-2 ${producto.cantidad_en_stock > 0 ? 'text-success' : 'text-danger'}`}>
+                            {producto.cantidad_en_stock > 0 ? 'In Stock' : 'Out of Stock'}
+                        </small>
+
+                        {/* Botones de acción */}
+                        <div className="d-flex gap-2">
+                            <button 
+                                className="btn btn-outline-primary btn-sm"
+                                onClick={() => navigate(`/editar/${producto.id}`)}
+                            >
+                                <i className="bi bi-pencil"></i>
+                            </button>
+                            <button 
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => handleDelete(producto.id)}
+                            >
+                                <i className="bi bi-trash"></i>
+                            </button>
                         </div>
                     </div>
                 ))}
-                
+
                 {filteredProductos.length === 0 && (
                     <div style={{ 
-                        gridColumn: '1 / -1',
                         textAlign: 'center',
                         padding: '40px',
-                        color: '#666'
+                        color: '#666',
+                        width: '100%'
                     }}>
                         No se encontraron productos con los filtros seleccionados
                     </div>
@@ -344,3 +348,4 @@ export function Listado() {
         </div>
     );
 }
+

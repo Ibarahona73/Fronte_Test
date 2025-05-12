@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { createProducto } from "../api/datos.api";
+import { createProducto, deleteProducto } from "../api/datos.api";
 import { toast } from "react-hot-toast";
+import { compressImage } from "../imageUtils";
 
 export function CrearInvPedido() {
     const { 
@@ -24,64 +25,43 @@ export function CrearInvPedido() {
     const navigate = useNavigate();
     const [previewImages, setPreviewImages] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [productos, setProductos] = useState([]);
     const selectedColor = watch("colores");
-
-    // Función para convertir Base64 a File
-    const base64ToFile = (base64, filename) => {
-        const arr = base64.split(',');
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        
-        while (n--) {
-            u8arr[n] = bstr.charCodeAt(n);
-        }
-        
-        return new File([u8arr], filename, { type: mime });
-    };
 
     const handleImageChange = async (e) => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
 
         const newImagePreviews = [];
-        
         for (const file of files) {
-            // Validaciones de imagen
             if (!file.type.match('image.*')) {
                 toast.error(`El archivo ${file.name} no es una imagen válida`);
                 continue;
             }
-
-            if (file.size > 2 * 1024 * 1024) { // 2MB máximo
-                toast.error(`La imagen ${file.name} es demasiado grande (máximo 2MB)`);
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error(`La imagen ${file.name} es demasiado grande (máximo 5MB)`);
                 continue;
             }
-
             try {
-                const base64String = await readFileAsBase64(file);
+                const base64String = await convertToBase64(file);
                 newImagePreviews.push({
                     name: file.name,
-                    url: base64String,
-                    size: file.size,
-                    fileObject: file // Guardamos el objeto File original
+                    url: URL.createObjectURL(file),
+                    base64: base64String,
                 });
             } catch (error) {
                 toast.error(`Error al procesar ${file.name}: ${error.message}`);
             }
         }
-
-        if (newImagePreviews.length > 0) {
-            setPreviewImages(newImagePreviews);
-            setValue("imagenes", newImagePreviews, { shouldValidate: true });
-        }
+        setPreviewImages(newImagePreviews);
+        setValue("imagenes", newImagePreviews, { shouldValidate: true });
     };
 
-    const readFileAsBase64 = (file) => {
+    // Función para convertir un archivo a Base64
+    const convertToBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (event) => resolve(event.target.result);
+            reader.onloadend = () => resolve(reader.result.split(",")[1]); // Obtener solo la parte Base64
             reader.onerror = (error) => reject(error);
             reader.readAsDataURL(file);
         });
@@ -93,76 +73,42 @@ export function CrearInvPedido() {
         setValue("imagenes", updatedImages);
     };
 
+    
     const onSubmit = async (formData) => {
         if (isSubmitting) return;
         setIsSubmitting(true);
 
         try {
-            // Crear FormData para el envío
-            const formDataToSend = new FormData();
-            
-            // Agregar campos del formulario
-            formDataToSend.append('nombre', formData.nombre.trim());
-            formDataToSend.append('precio', parseFloat(formData.precio));
-            formDataToSend.append('cantidad_en_stock', parseInt(formData.cantidad_en_stock));
-            formDataToSend.append('descripcion', formData.descripcion?.trim() || '');
-            formDataToSend.append('categoria', formData.categoria);
-            formDataToSend.append('tamaño', formData.tamaño);
-            formDataToSend.append('colores', formData.colores);
-
-            // Procesar imagen si existe
-            const imagenes = getValues("imagenes");
-            if (imagenes?.length > 0) {
-                const primeraImagen = imagenes[0];
-                
-                // Usar el objeto File directamente si está disponible
-                if (primeraImagen.fileObject) {
-                    formDataToSend.append('imagen', primeraImagen.fileObject);
-                } else {
-                    // Convertir Base64 a File como fallback
-                    const file = base64ToFile(primeraImagen.url, primeraImagen.name || 'product-image.jpg');
-                    formDataToSend.append('imagen', file);
-                }
+            if (previewImages.length === 0) {
+                toast.error("Debes seleccionar al menos una imagen");
+                setIsSubmitting(false);
+                return;
             }
 
-            console.log('Datos a enviar:');
-            for (let [key, value] of formDataToSend.entries()) {
-                console.log(key, value);
-            }
+            const productData = {
+                nombre: formData.nombre.trim(),
+                precio: parseFloat(formData.precio),
+                cantidad_en_stock: parseInt(formData.cantidad_en_stock),
+                descripcion: formData.descripcion?.trim() || '',
+                categoria: formData.categoria,
+                tamaño: formData.tamaño,
+                colores: formData.colores,
+                imagen_base64: previewImages[0].base64, // Enviar Base64
+            };
 
-            const response = await createProducto(formDataToSend);
-            
-            // Éxito
+            await createProducto(productData);
             toast.success("Producto creado exitosamente");
             reset();
             setPreviewImages([]);
             navigate("/inventario");
-
         } catch (error) {
-            console.error('Error completo:', {
-                message: error.message,
-                response: error.response?.data,
-                config: error.config?.data
-            });
-            
-            let errorMessage = "Error al crear el producto";
-            if (error.response?.data) {
-                // Manejo específico de errores del backend
-                if (error.response.data.imagen) {
-                    errorMessage = `Error en la imagen: ${error.response.data.imagen.join(', ')}`;
-                } else if (typeof error.response.data === 'object') {
-                    errorMessage = Object.entries(error.response.data)
-                        .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(', ') : val}`)
-                        .join('; ');
-                }
-            }
-            
-            toast.error(errorMessage);
+            console.error("Error al crear el producto:", error);
+            toast.error("Error al crear el producto");
         } finally {
             setIsSubmitting(false);
         }
     };
-
+    
     return (
         <div className="container mt-4">
             <div className="card shadow-sm">
@@ -170,7 +116,7 @@ export function CrearInvPedido() {
                     <h4 className="mb-0">Crear Nuevo Producto</h4>
                 </div>
                 
-                <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data" className="card-body">
+                <form onSubmit={handleSubmit(onSubmit)} className="card-body">
                     {/* Sección de imágenes */}
                     <div className="mb-4">
                         <h5 className="mb-3 fw-semibold">Imagen del Producto</h5>
@@ -190,7 +136,7 @@ export function CrearInvPedido() {
                                 <div className="d-flex flex-column align-items-center justify-content-center">
                                     <i className="bi bi-image fs-1 text-muted mb-2"></i>
                                     <p className="text-muted mb-0">Haz clic para seleccionar una imagen</p>
-                                    <small className="text-muted">Formatos: JPG, PNG (Máx. 2MB)</small>
+                                    <small className="text-muted">Formatos: JPG, PNG (Máx. 5MB)</small>
                                 </div>
                             </label>
                         </div>
@@ -219,6 +165,8 @@ export function CrearInvPedido() {
                                         </button>
                                         <div className="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-50 text-white p-1 small">
                                             {image.name.substring(0, 15)}{image.name.length > 15 ? '...' : ''}
+                                            <br />
+                                            {(image.size / 1024).toFixed(1)} KB
                                         </div>
                                     </div>
                                 ))}
@@ -444,7 +392,8 @@ export function CrearInvPedido() {
                         </div>
                     </div>
 
-                    {/* Botones de acción */}
+                   
+                   {/* Botones de acción */}
                     <div className="d-flex justify-content-end gap-3 pt-4 border-top">
                         <button 
                             type="button"
