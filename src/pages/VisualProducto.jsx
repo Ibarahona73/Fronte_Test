@@ -4,11 +4,10 @@ import { getProducto } from '../api/datos.api';
 import { Navigation } from '../components/Navigation';
 import { useCart } from '../components/CartContext';
 
-
 export function VisualProducto() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { addToCart } = useCart();
+    const { addToCart, cart } = useCart(); // Obtener el carrito desde el contexto
     const [producto, setProducto] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -19,7 +18,12 @@ export function VisualProducto() {
         async function fetchProducto() {
             try {
                 const data = await getProducto(id);
-                setProducto(data);
+
+                // Calcular el stock restante considerando los productos en el carrito
+                const productoEnCarrito = cart.find((item) => item.id === data.id);
+                const stockRestante = data.cantidad_en_stock - (productoEnCarrito?.quantity || 0);
+
+                setProducto({ ...data, cantidad_en_stock: stockRestante });
             } catch (err) {
                 console.error('Error fetching producto:', err);
                 setError('Error al cargar el producto');
@@ -29,7 +33,7 @@ export function VisualProducto() {
         }
 
         fetchProducto();
-    }, [id]);
+    }, [id, cart]); // Volver a cargar el producto si el carrito cambia
 
     if (loading) return <div>Cargando producto...</div>;
     if (error) return <div style={{ color: 'red' }}>{error}</div>;
@@ -97,6 +101,37 @@ export function VisualProducto() {
                     </button>
                 </div>
             </div>
+
+            {/* Popup del carrito */}
+            {showCartPopup && (
+                <div style={{
+                    position: 'fixed',
+                    top: '10px',
+                    right: '10px',
+                    backgroundColor: '#fff',
+                    border: '1px solid #ddd',
+                    borderRadius: '5px',
+                    padding: '10px',
+                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+                }}>
+                    <p>Producto añadido al carrito</p>
+                    <p>{producto.nombre}</p>
+                    <p>Cantidad: {cantidad}</p>
+                    <button
+                        onClick={() => navigate('/carrito')}
+                        style={{
+                            backgroundColor: '#3498db',
+                            color: '#fff',
+                            padding: '5px 10px',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        Ver Carrito
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
