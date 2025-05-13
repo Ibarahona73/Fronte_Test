@@ -31,8 +31,7 @@ export function Carrito() {
                             />
                             <div style={{ flex: 2 }}>
                                 <h3>{item.nombre}</h3>
-                                <p>{item.descripcion || 'No hay descripción disponible.'}</p>
-                                <p>Stock disponible: {stock[item.id] || item.cantidad_en_stock}</p>
+                                <p>{item.descripcion || 'No hay descripción disponible.'}</p>                                
                             </div>
                             <div style={{ flex: 1, textAlign: 'right' }}>
                                 <p>Precio: ${item.precio ? Number(item.precio).toFixed(2) : '0.00'}</p>

@@ -4,8 +4,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from "react";
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../components/CartContext';
 
 export function ClientView() {
+    const { cart } = useCart(); // Obtener el carrito desde el contexto
     const [productos, setProductos] = useState([]);
     const [filteredProductos, setFilteredProductos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -33,14 +35,20 @@ export function ClientView() {
                 const res = await getProductos();
                 if (!isMounted) return;
 
-                const productosConImagenes = res.map(producto => ({
-                    ...producto,
-                    // Normalizar tamaños
-                    tamaño: sizeMap[producto.tamaño] || producto.tamaño,
-                    imagen: producto.imagen_base64 
-                        ? `data:image/jpeg;base64,${producto.imagen_base64}`
-                        : null
-                }));
+                const productosConImagenes = res.map(producto => {
+                    // Calcular el stock restante considerando los productos en el carrito
+                    const productoEnCarrito = cart.find((item) => item.id === producto.id);
+                    const stockRestante = producto.cantidad_en_stock - (productoEnCarrito?.quantity || 0);
+
+                    return {
+                        ...producto,
+                        tamaño: sizeMap[producto.tamaño] || producto.tamaño,
+                        imagen: producto.imagen_base64 
+                            ? `data:image/jpeg;base64,${producto.imagen_base64}`
+                            : null,
+                        cantidad_en_stock: stockRestante, // Actualizar el stock restante
+                    };
+                });
 
                 setProductos(productosConImagenes);
                 setFilteredProductos(productosConImagenes);
@@ -55,7 +63,7 @@ export function ClientView() {
         cargaProductos();
 
         return () => { isMounted = false; };
-    }, []);
+    }, [cart]); // Volver a cargar los productos si el carrito cambia
 
     // Obtener valores únicos para los filtros
     const uniqueColors = [...new Set(productos.map(p => p.colores).filter(Boolean))];
