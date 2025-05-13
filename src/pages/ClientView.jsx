@@ -196,38 +196,38 @@ export function ClientView() {
                 {/* Filtro por color */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Color</h4>
-                    {uniqueColors.map(color => (
-                        <div key={color} style={{ marginBottom: '5px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        {uniqueColors.map((color) => (
+                            <div key={color} style={{ display: 'flex', alignItems: 'center' }}>
                                 <input
                                     type="radio"
                                     name="color"
                                     checked={filters.color === color}
-                                    onChange={() => setFilters({...filters, color: color})}
+                                    onChange={() => setFilters({ ...filters, color })}
                                     style={{ marginRight: '8px' }}
                                 />
-                                <div style={{
-                                    display: 'inline-block',
-                                    width: '15px',
-                                    height: '15px',
-                                    backgroundColor: color,
-                                    borderRadius: '50%',
-                                    marginRight: '8px',
-                                    border: '1px solid #ddd'
-                                }} />
-                                {color}
-                            </label>
-                        </div>
-                    ))}
-                    <button 
-                        onClick={() => setFilters({...filters, color: ''})}
+                                <div
+                                    style={{
+                                        display: 'inline-block',
+                                        width: '20px',
+                                        height: '20px',
+                                        backgroundColor: color,
+                                        borderRadius: '50%',
+                                        border: '1px solid #ddd',
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <button
+                        onClick={() => setFilters({ ...filters, color: '' })}
                         style={{
                             background: 'none',
                             border: 'none',
                             color: '#3498db',
                             cursor: 'pointer',
                             padding: '5px 0',
-                            fontSize: '0.9rem'
+                            fontSize: '0.9rem',
                         }}
                     >
                         Limpiar

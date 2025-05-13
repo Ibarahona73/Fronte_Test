@@ -1,10 +1,8 @@
-import { getProductos, deleteProducto } from "../api/datos.api";
+import { getProductos } from "../api/datos.api";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from "react";
-import { Navigation } from './Navigation';
-import { toast } from "react-hot-toast";
 import React from 'react';
 
 export function Listado() {
@@ -20,267 +18,216 @@ export function Listado() {
 
     const navigate = useNavigate();
 
-    // Mapeo de tamaños a abreviaciones
-    const sizeMap = {
-        'Pequeño': 'S',
-        'Mediano': 'M',
-        'Largo': 'L',
-        'Extra Largo': 'XL',
-        'XXL': 'XXL'
-    };
-
     useEffect(() => {
-        let isMounted = true;
-        
         async function cargaProductos() {
             try {
                 const res = await getProductos();
-                if (!isMounted) return;
-                
                 const productosConImagenes = res.map(producto => ({
                     ...producto,
-                    // Normalizar tamaños
-                    tamaño: sizeMap[producto.tamaño] || producto.tamaño,
-                    imagen: producto.imagen_base64 
+                    imagen: producto.imagen_base64
                         ? `data:image/jpeg;base64,${producto.imagen_base64}`
-                        : null
+                        : null,
                 }));
-                
                 setProductos(productosConImagenes);
                 setFilteredProductos(productosConImagenes);
             } catch (error) {
                 console.error("Error:", error);
                 setError("Error al cargar productos");
             } finally {
-                if (isMounted) setLoading(false);
+                setLoading(false);
             }
         }
-        
         cargaProductos();
-        
-        return () => { isMounted = false; };
     }, []);
-
-    // Obtener valores únicos para los filtros
-    const uniqueColors = [...new Set(productos.map(p => p.colores).filter(Boolean))];
-    const uniqueCategories = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
-    const uniqueSizes = [...new Set(productos.map(p => p.tamaño).filter(Boolean))];
 
     // Aplicar filtros
     useEffect(() => {
         let result = [...productos];
-        
+
         if (filters.categoria) {
-            result = result.filter(p => p.categoria === filters.categoria);
+            result = result.filter((p) => p.categoria === filters.categoria);
         }
-        
+
         if (filters.tamaño) {
-            result = result.filter(p => p.tamaño === filters.tamaño);
+            result = result.filter((p) => p.tamaño === filters.tamaño);
         }
-        
+
         if (filters.color) {
-            result = result.filter(p => p.colores === filters.color);
+            result = result.filter((p) => p.colores === filters.color);
         }
-        
+
         setFilteredProductos(result);
     }, [filters, productos]);
 
-    const handleDelete = async (id) => {
-        if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-            try {
-                await deleteProducto(id); // Llama a tu API para eliminar el producto
-                toast.success("Producto eliminado exitosamente");
-                // Actualiza la lista de productos si es necesario
-                setProductos((prev) => prev.filter((producto) => producto.id !== id));
-            } catch (error) {
-                console.error("Error al eliminar el producto:", error);
-                toast.error("Error al eliminar el producto");
-            }
-        }
-    };
+    if (loading) return <div>Cargando productos...</div>;
+    if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
-    if (loading) return (
-        <div>            
-            <div style={{ 
-                padding: '40px', 
-                textAlign: 'center',
-                fontSize: '1.2rem'
-            }}>
-                Cargando productos...
-            </div>
-        </div>
-    );
-    
-    if (error) return (
-        <div>            
-            <div style={{ 
-                padding: '40px', 
-                color: 'red', 
-                textAlign: 'center',
-                fontSize: '1.2rem'
-            }}>
-                {error}
-            </div>
-        </div>
-    );
+    // Obtener valores únicos para los filtros
+    const uniqueColors = [...new Set(productos.map((p) => p.colores).filter(Boolean))];
+    const allSizes = ['S (Pequeño)' , 'M (Mediano)', 'L (Largo)', 'XL (Extra Largo)', 'XXL (XXL)']; // Todos los tamaños posibles
+    const uniqueCategories = [...new Set(productos.map((p) => p.categoria).filter(Boolean))];
 
     return (
         <div style={{ display: 'flex' }}>
             {/* Sidebar de filtros */}
-            <div style={{
-                width: '250px',
-                padding: '20px',
-                backgroundColor: '#f8f9fa',
-                borderRight: '1px solid #e0e0e0',
-                position: 'sticky',
-                top: '70px',
-                height: 'calc(100vh - 70px)',
-                overflowY: 'auto'
-            }}>
+            <div
+                style={{
+                    width: '250px',
+                    padding: '20px',
+                    backgroundColor: '#f8f9fa',
+                    borderRight: '1px solid #e0e0e0',
+                    position: 'sticky',
+                    top: '70px',
+                    height: 'calc(100vh - 70px)',
+                    overflowY: 'auto',
+                }}
+            >
                 <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Filtros</h3>
-                
+
                 {/* Filtro por categoría */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Categoría</h4>
-                    {uniqueCategories.map(cat => (
+                    {uniqueCategories.map((cat) => (
                         <div key={cat} style={{ marginBottom: '5px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                                 <input
                                     type="radio"
                                     name="categoria"
                                     checked={filters.categoria === cat}
-                                    onChange={() => setFilters({...filters, categoria: cat})}
+                                    onChange={() => setFilters({ ...filters, categoria: cat })}
                                     style={{ marginRight: '8px' }}
                                 />
                                 {cat}
                             </label>
                         </div>
                     ))}
-                    <button 
-                        onClick={() => setFilters({...filters, categoria: ''})}
+                    <button
+                        onClick={() => setFilters({ ...filters, categoria: '' })}
                         style={{
                             background: 'none',
                             border: 'none',
                             color: '#3498db',
                             cursor: 'pointer',
                             padding: '5px 0',
-                            fontSize: '0.9rem'
+                            fontSize: '0.9rem',
                         }}
                     >
                         Limpiar
                     </button>
                 </div>
-                
+
                 {/* Filtro por tamaño */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Tamaño</h4>
-                    {['S', 'M', 'L', 'XL', 'XXL'].map(size => (
+                    {allSizes.map((size) => (
                         <div key={size} style={{ marginBottom: '5px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                                 <input
                                     type="radio"
                                     name="tamaño"
                                     checked={filters.tamaño === size}
-                                    onChange={() => setFilters({...filters, tamaño: size})}
+                                    onChange={() => setFilters({ ...filters, tamaño: size })}
                                     style={{ marginRight: '8px' }}
                                 />
-                                {size} ({Object.keys(sizeMap).find(key => sizeMap[key] === size)})
+                                {size}
                             </label>
                         </div>
                     ))}
-                    <button 
-                        onClick={() => setFilters({...filters, tamaño: ''})}
+                    <button
+                        onClick={() => setFilters({ ...filters, tamaño: '' })}
                         style={{
                             background: 'none',
                             border: 'none',
                             color: '#3498db',
                             cursor: 'pointer',
                             padding: '5px 0',
-                            fontSize: '0.9rem'
+                            fontSize: '0.9rem',
                         }}
                     >
                         Limpiar
                     </button>
                 </div>
-                
+
                 {/* Filtro por color */}
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ marginBottom: '10px' }}>Color</h4>
-                    {uniqueColors.map(color => (
-                        <div key={color} style={{ marginBottom: '5px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        {uniqueColors.map((color) => (
+                            <div key={color} style={{ display: 'flex', alignItems: 'center' }}>
                                 <input
                                     type="radio"
                                     name="color"
                                     checked={filters.color === color}
-                                    onChange={() => setFilters({...filters, color: color})}
+                                    onChange={() => setFilters({ ...filters, color })}
                                     style={{ marginRight: '8px' }}
                                 />
-                                <div style={{
-                                    display: 'inline-block',
-                                    width: '15px',
-                                    height: '15px',
-                                    backgroundColor: color,
-                                    borderRadius: '50%',
-                                    marginRight: '8px',
-                                    border: '1px solid #ddd'
-                                }} />
-                                {color}
-                            </label>
-                        </div>
-                    ))}
-                    <button 
-                        onClick={() => setFilters({...filters, color: ''})}
+                                <div
+                                    style={{
+                                        display: 'inline-block',
+                                        width: '20px',
+                                        height: '20px',
+                                        backgroundColor: color,
+                                        borderRadius: '50%',
+                                        border: '1px solid #ddd',
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <button
+                        onClick={() => setFilters({ ...filters, color: '' })}
                         style={{
                             background: 'none',
                             border: 'none',
                             color: '#3498db',
                             cursor: 'pointer',
                             padding: '5px 0',
-                            fontSize: '0.9rem'
+                            fontSize: '0.9rem',
                         }}
                     >
                         Limpiar
                     </button>
                 </div>
             </div>
-            
+
             {/* Listado de productos */}
-            <div style={{ 
-                flex: 1,
-                display: 'flex', // Cambiado a flex
-                flexWrap: 'wrap', // Permite que los productos pasen a la siguiente fila
-                gap: '20px', // Espaciado entre productos
-                padding: '20px',
-                justifyContent: 'flex-start', // Alinea los productos al inicio
-                alignItems: 'flex-start' // Alinea los productos verticalmente al inicio
-            }}>
+            <div
+                style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '20px',
+                    padding: '20px',
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start',
+                }}
+            >
                 {filteredProductos.map((producto) => (
-                    <div 
-                        key={producto.id} 
+                    <div
+                        key={producto.id}
                         className="product-item border p-3 d-flex flex-column align-items-center text-center"
                         style={{
                             borderRadius: '5px',
                             boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
                             backgroundColor: '#fff',
-                            width: '300px' // Ancho fijo para cada producto
+                            width: '300px',
                         }}
                     >
                         {/* Imagen del producto */}
                         {producto.imagen ? (
-                            <img 
-                                src={producto.imagen} 
-                                alt={producto.nombre} 
-                                style={{ 
-                                    width: '150px', 
-                                    height: '150px', 
-                                    objectFit: 'cover', 
-                                    borderRadius: '5px', 
-                                    marginBottom: '10px' 
-                                }} 
+                            <img
+                                src={producto.imagen}
+                                alt={producto.nombre}
+                                style={{
+                                    width: '150px',
+                                    height: '150px',
+                                    objectFit: 'cover',
+                                    borderRadius: '5px',
+                                    marginBottom: '10px',
+                                }}
                             />
                         ) : (
-                            <div 
+                            <div
                                 style={{
                                     width: '150px',
                                     height: '150px',
@@ -291,7 +238,7 @@ export function Listado() {
                                     borderRadius: '5px',
                                     fontSize: '0.8rem',
                                     color: '#888',
-                                    marginBottom: '10px'
+                                    marginBottom: '10px',
                                 }}
                             >
                                 Sin Imagen
@@ -306,41 +253,45 @@ export function Listado() {
                             ${Number(producto.precio).toFixed(2)}
                         </small>
 
-                        {/* Colores disponibles */}
-                        <small className="text-muted d-block mb-1">
-                            {producto.colores ? `${producto.colores.split(',').length} color options` : 'No colors available'}
-                        </small>
-
                         {/* Estado del stock */}
-                        <small className={`d-block mb-2 ${producto.cantidad_en_stock > 0 ? 'text-success' : 'text-danger'}`}>
+                        <small
+                            className={`d-block mb-2 ${
+                                producto.cantidad_en_stock > 0 ? 'text-success' : 'text-danger'
+                            }`}
+                        >
                             {producto.cantidad_en_stock > 0 ? 'In Stock' : 'Out of Stock'}
                         </small>
 
                         {/* Botones de acción */}
                         <div className="d-flex gap-2">
-                            <button 
-                                className="btn btn-outline-primary btn-sm"
+                            {/* Botón de edición */}
+                            <button
+                                className="btn btn-outline-secondary btn-sm"
                                 onClick={() => navigate(`/editar/${producto.id}`)}
                             >
-                                <i className="bi bi-pencil"></i>
+                                <i className="bi bi-pencil"></i> Editar Producto
                             </button>
-                            <button 
-                                className="btn btn-outline-danger btn-sm"
-                                onClick={() => handleDelete(producto.id)}
+
+                            {/* Botón de salida de stock */}
+                            <button
+                                className="btn btn-outline-primary btn-sm"
+                                onClick={() => navigate(`/out/${producto.id}`)} // Redirige a la página de salida de stock con el ID del producto
                             >
-                                <i className="bi bi-trash"></i>
+                                Salida Stock
                             </button>
                         </div>
                     </div>
                 ))}
 
                 {filteredProductos.length === 0 && (
-                    <div style={{ 
-                        textAlign: 'center',
-                        padding: '40px',
-                        color: '#666',
-                        width: '100%'
-                    }}>
+                    <div
+                        style={{
+                            textAlign: 'center',
+                            padding: '40px',
+                            color: '#666',
+                            width: '100%',
+                        }}
+                    >
                         No se encontraron productos con los filtros seleccionados
                     </div>
                 )}
@@ -348,4 +299,3 @@ export function Listado() {
         </div>
     );
 }
-

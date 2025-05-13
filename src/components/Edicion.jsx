@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { getProducto, updateProducto } from "../api/datos.api";
+import { getProducto, updateProducto, deleteProducto } from "../api/datos.api";
 import { toast } from "react-hot-toast";
 import { compressImage } from "../imageUtils";
 
 export function Edicion() {
-    const { id } = useParams(); // Obtener el ID del producto desde la URL
+    const { id } = useParams();
     const navigate = useNavigate();
     const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
     const [previewImages, setPreviewImages] = useState([]);
@@ -16,7 +16,7 @@ export function Edicion() {
         async function fetchProducto() {
             try {
                 const producto = await getProducto(id);
-                reset(producto); // Cargar los datos del producto en el formulario
+                reset(producto);
                 if (producto.imagen_url) {
                     setPreviewImages([{ url: producto.imagen_url, name: "Imagen actual" }]);
                 }
@@ -65,6 +65,19 @@ export function Edicion() {
         setValue("imagenes", []);
     };
 
+    const handleDelete = async () => {
+        if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+            try {
+                await deleteProducto(id);
+                toast.success("Producto eliminado exitosamente");
+                navigate("/inventario");
+            } catch (error) {
+                console.error("Error al eliminar el producto:", error);
+                toast.error("Error al eliminar el producto");
+            }
+        }
+    };
+
     const onSubmit = async (formData) => {
         if (isSubmitting) return;
         setIsSubmitting(true);
@@ -80,7 +93,6 @@ export function Edicion() {
                 colores: formData.colores,
             };
 
-            // Si hay una imagen seleccionada, agregarla al payload
             if (previewImages.length > 0 && previewImages[0].fileObject) {
                 productData.imagen = previewImages[0].fileObject;
             }
@@ -174,8 +186,8 @@ export function Edicion() {
                             <input
                                 type="number"
                                 id="precio"
-                                step="0.01" // Permite decimales
-                                min="0" // No permite valores negativos
+                                step="0.01"
+                                min="0"
                                 className={`form-control ${errors.precio ? 'is-invalid' : ''}`}
                                 placeholder="0.00"
                                 disabled={isSubmitting}
@@ -185,7 +197,7 @@ export function Edicion() {
                                         value: 0,
                                         message: "El precio debe ser mayor o igual a 0"
                                     },
-                                    valueAsNumber: true // Convierte el valor a número
+                                    valueAsNumber: true
                                 })}
                             />
                             {errors.precio && (
@@ -255,6 +267,14 @@ export function Edicion() {
 
                     {/* Botones de acción */}
                     <div className="d-flex justify-content-end gap-3 pt-4 border-top">
+                        <button
+                            type="button"
+                            className="btn btn-outline-danger px-4"
+                            onClick={handleDelete}
+                            disabled={isSubmitting}
+                        >
+                            Eliminar Producto
+                        </button>
                         <button 
                             type="button"
                             className="btn btn-outline-secondary px-4"
