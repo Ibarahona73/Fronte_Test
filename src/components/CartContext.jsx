@@ -4,6 +4,7 @@ const CartContext = createContext();
 
 export function CartProvider({ children }) {
     const [cart, setCart] = useState([]);
+    const [stock, setStock] = useState({}); // Nuevo estado para manejar el stock
 
     const addToCart = (product, quantity) => {
         setCart((prevCart) => {
@@ -11,16 +12,18 @@ export function CartProvider({ children }) {
             if (existingProduct) {
                 return prevCart.map((item) =>
                     item.id === product.id
-                        ? { ...item, quantity: item.quantity + quantity }
+                        ? { ...item, quantity: Math.min(item.quantity + quantity, product.cantidad_en_stock) }
                         : item
                 );
             }
             return [...prevCart, { ...product, quantity }];
         });
-    };
 
-    const removeFromCart = (id) => {
-        setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+        // Reducir el stock dinámicamente
+        setStock((prevStock) => ({
+            ...prevStock,
+            [product.id]: (prevStock[product.id] || product.cantidad_en_stock) - quantity,
+        }));
     };
 
     const updateCartQuantity = (id, quantity) => {
@@ -31,10 +34,23 @@ export function CartProvider({ children }) {
         );
     };
 
+    const removeFromCart = (id) => {
+        const product = cart.find((item) => item.id === id);
+        if (product) {
+            // Restaurar el stock al eliminar un producto del carrito
+            setStock((prevStock) => ({
+                ...prevStock,
+                [id]: (prevStock[id] || product.cantidad_en_stock) + product.quantity,
+            }));
+        }
+
+        setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+    };
+
     const cartTotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
 
     return (
-        <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateCartQuantity, cartTotal }}>
+        <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateCartQuantity, cartTotal, stock }}>
             {children}
         </CartContext.Provider>
     );

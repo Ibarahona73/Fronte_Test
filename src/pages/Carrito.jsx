@@ -3,7 +3,7 @@ import { useCart } from '../components/CartContext';
 import { useNavigate } from 'react-router-dom';
 
 export function Carrito() {
-    const { cart, cartTotal, removeFromCart, updateCartQuantity } = useCart();
+    const { cart, cartTotal, removeFromCart, updateCartQuantity, stock } = useCart();
     const navigate = useNavigate();
 
     return (
@@ -24,18 +24,16 @@ export function Carrito() {
                                 paddingBottom: '10px',
                             }}
                         >
-                            {/* Imagen del producto */}
                             <img
                                 src={item.imagen_base64 ? `data:image/jpeg;base64,${item.imagen_base64}` : 'https://via.placeholder.com/100'}
                                 alt={item.nombre}
-                                style={{ width: '100px', height: '100px', marginRight: '20px' }}
+                                style={{ width: '200px', height: '100px', marginRight: '20px' }}
                             />
-                            {/* Detalles del producto */}
                             <div style={{ flex: 2 }}>
                                 <h3>{item.nombre}</h3>
                                 <p>{item.descripcion || 'No hay descripción disponible.'}</p>
+                                <p>Stock disponible: {stock[item.id] || item.cantidad_en_stock}</p>
                             </div>
-                            {/* Cantidad y precio */}
                             <div style={{ flex: 1, textAlign: 'right' }}>
                                 <p>Precio: ${item.precio ? Number(item.precio).toFixed(2) : '0.00'}</p>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -59,17 +57,17 @@ export function Carrito() {
                                         onClick={() =>
                                             updateCartQuantity(
                                                 item.id,
-                                                Math.min(item.quantity + 1, item.cantidad_en_stock)
+                                                Math.min(item.quantity + 1, stock[item.id] || item.cantidad_en_stock)
                                             )
                                         }
-                                        disabled={item.quantity >= item.cantidad_en_stock}
+                                        disabled={item.quantity >= (stock[item.id] || item.cantidad_en_stock)}
                                         style={{
-                                            backgroundColor: item.quantity < item.cantidad_en_stock ? '#3498db' : '#ccc',
+                                            backgroundColor: item.quantity < (stock[item.id] || item.cantidad_en_stock) ? '#3498db' : '#ccc',
                                             color: '#fff',
                                             padding: '5px 10px',
                                             border: 'none',
                                             borderRadius: '5px',
-                                            cursor: item.quantity < item.cantidad_en_stock ? 'pointer' : 'not-allowed',
+                                            cursor: item.quantity < (stock[item.id] || item.cantidad_en_stock) ? 'pointer' : 'not-allowed',
                                         }}
                                     >
                                         +
