@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProducto } from '../api/datos.api';
+import { getProducto, getProductos } from '../api/datos.api';
 import { Navigation } from '../components/Navigation';
 import { useCart } from '../components/CartContext';
 
 export function VisualProducto() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { addToCart, cart } = useCart(); // Obtener el carrito desde el contexto
+    const { addToCart, cart } = useCart();
     const [producto, setProducto] = useState(null);
+    const [productosRelacionados, setProductosRelacionados] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [cantidad, setCantidad] = useState(1);
@@ -32,7 +33,17 @@ export function VisualProducto() {
             }
         }
 
+        async function fetchProductosRelacionados() {
+            try {
+                const productos = await getProductos();
+                setProductosRelacionados(productos.slice(0, 5)); // Obtener los primeros 5 productos
+            } catch (err) {
+                console.error('Error fetching productos relacionados:', err);
+            }
+        }
+
         fetchProducto();
+        fetchProductosRelacionados();
     }, [id, cart]); // Volver a cargar el producto si el carrito cambia
 
     if (loading) return <div>Cargando producto...</div>;
@@ -132,6 +143,42 @@ export function VisualProducto() {
                     </button>
                 </div>
             )}
+
+            {/* Productos relacionados */}
+            <div className="mt-5">
+                <h3>Productos Relacionados</h3>
+                <div className="d-flex gap-3">
+                    {productosRelacionados.map((productoRelacionado) => (
+                        <div
+                            key={productoRelacionado.id}
+                            onClick={() => navigate(`/producto/${productoRelacionado.id}`)}
+                            style={{
+                                width: '100px',
+                                height: '100px',
+                                backgroundColor: '#f0f0f0',
+                                borderRadius: '10px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                                marginLeft: '50px',
+                                border: '1px solid black',
+                            }}
+                        >
+                            {productoRelacionado.imagen_base64 ? (
+                                <img
+                                    src={`data:image/jpeg;base64,${productoRelacionado.imagen_base64}`}
+                                    alt={productoRelacionado.nombre}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                            ) : (
+                                <span style={{ fontSize: '0.8rem', color: '#888' }}>Sin Imagen</span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

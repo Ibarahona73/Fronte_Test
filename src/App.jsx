@@ -13,6 +13,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Carrito } from './pages/Carrito';
 
 import './App.css';
+import { EntradaStock } from './pages/EntradaStock';
 
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="/carrito" element={<Carrito />} />
           <Route path="/editar/:id" element={<Edicion />} />
           <Route path="/out/:id" element={<SalidaStock />} />
+          <Route path="/fillProd/:id" element={<EntradaStock />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

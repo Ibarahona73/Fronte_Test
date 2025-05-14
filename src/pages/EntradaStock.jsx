@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProducto, updateProductoStock } from '../api/datos.api'; // Asegúrate de tener esta función para actualizar el stock
+import { getProducto, addProductoStock } from '../api/datos.api'; // Asegúrate de tener esta función para actualizar el stock
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-export function SalidaStock() {
+export function EntradaStock() {
     const { id } = useParams(); // Obtener el ID del producto desde la URL
     const navigate = useNavigate();
     const [producto, setProducto] = useState(null);
@@ -30,25 +30,22 @@ export function SalidaStock() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!descripcion.trim()) {
-            alert('Por favor, ingresa una descripción para la salida de stock.');
-            return;
-        }
-
-        // Validar que la cantidad seleccionada no exceda el stock disponible
-        if (cantidad > producto.cantidad_en_stock) {
-            alert('La cantidad seleccionada excede el stock disponible.');
+            alert('Por favor, ingresa una descripción para la entrada de stock.');
             return;
         }
 
         try {
-            // Actualizar el stock en la base de datos
-            await updateProductoStock(id, cantidad);
+            // Calcular el nuevo stock sumando la cantidad seleccionada
+            const nuevoStock = producto.cantidad_en_stock + cantidad;
 
-            alert('Salida de stock registrada exitosamente.');
-            navigate('/inventario'); // Redirigir al inventario después de registrar la salida
+            // Actualizar el stock en la base de datos
+            await addProductoStock(id, nuevoStock);
+
+            alert('Entrada de stock registrada exitosamente.');
+            navigate('/inventario'); // Redirigir al inventario después de registrar la entrada
         } catch (err) {
-            console.error('Error al registrar la salida de stock:', err);
-            alert('Hubo un error al registrar la salida de stock.');
+            console.error('Error al registrar la entrada de stock:', err);
+            alert('Hubo un error al registrar la entrada de stock.');
         }
     };
 
@@ -57,46 +54,40 @@ export function SalidaStock() {
 
     return (
         <div className="container mt-4">
-            <h1 className="mb-4">Salida de Stock</h1>
+            <h1 className="mb-4">Entrada de Stock</h1>
             <div className="row">
                 {/* Imagen del producto */}
                 <div className="col-md-6">
                     <img
-                        src={producto.imagen_base64 ? `data:image/jpeg;base64,${producto.imagen_base64}` : 'https://via.placeholder.com/300'}
-                        alt={producto.nombre}
+                        src={producto?.imagen_base64 ? `data:image/jpeg;base64,${producto.imagen_base64}` : 'https://via.placeholder.com/300'}
+                        alt={producto?.nombre}
                         className="img-fluid rounded"
                     />
                 </div>
 
-                {/* Formulario de salida de stock */}
+                {/* Formulario de entrada de stock */}
                 <div className="col-md-6">
-                    <h2>{producto.nombre}</h2>
+                    <h2>{producto?.nombre}</h2>
                     <form onSubmit={handleSubmit}>
                         {/* Tamaño */}
                         <div className="mb-3">
                             <label htmlFor="tamaño" className="form-label">Tamaño</label>
                             <select id="tamaño" className="form-select" disabled>
-                                <option>{producto.tamaño}</option>
+                                <option>{producto?.tamaño}</option>
                             </select>
                         </div>
 
                         {/* Cantidad */}
                         <div className="mb-3">
                             <label htmlFor="cantidad" className="form-label">Cantidad</label>
-                            <select
+                            <input
+                                type="number"
                                 id="cantidad"
-                                className="form-select"
+                                className="form-control"
                                 value={cantidad}
                                 onChange={(e) => setCantidad(Number(e.target.value))}
-                                size={Math.min(producto.cantidad_en_stock, 5)} // Mostrar hasta 5 opciones con scrollbar si hay más
-                                style={{ overflowY: 'auto' }}
-                            >
-                                {Array.from({ length: producto.cantidad_en_stock }, (_, i) => i + 1).map((num) => (
-                                    <option key={num} value={num}>
-                                        {num}
-                                    </option>
-                                ))}
-                            </select>
+                                min="1"
+                            />
                         </div>
 
                         {/* Descripción */}
@@ -108,14 +99,14 @@ export function SalidaStock() {
                                 rows="3"
                                 value={descripcion}
                                 onChange={(e) => setDescripcion(e.target.value)}
-                                placeholder="Descripción del porqué la salida del producto"
+                                placeholder="Descripción del porqué la entrada del producto"
                             ></textarea>
                         </div>
 
                         {/* Botones */}
                         <div className="d-flex gap-3">
                             <button type="submit" className="btn btn-primary">
-                                Registrar Salida
+                                Registrar Entrada
                             </button>
                             <button
                                 type="button"

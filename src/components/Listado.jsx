@@ -263,7 +263,7 @@ export function Listado() {
                         </small>
 
                         {/* Botones de acción */}
-                        <div className="d-flex gap-2">
+                        <div className="d-flex flex-column gap-2">
                             {/* Botón de edición */}
                             <button
                                 className="btn btn-outline-secondary btn-sm"
@@ -279,6 +279,16 @@ export function Listado() {
                             >
                                 Salida Stock
                             </button>
+
+                            {/* Botón de rellenar stock */}
+                            {producto.cantidad_en_stock === 0 && (
+                                <button
+                                    className="btn btn-outline-success btn-sm"
+                                    onClick={() => navigate(`/fillProd/${producto.id}`)} // Redirige a la página para rellenar stock
+                                >
+                                    Rellenar Stock
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}

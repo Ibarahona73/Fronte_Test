@@ -105,3 +105,35 @@ export const getPedidos = () => {
       throw error; // Propaga el error para manejarlo en el componente
     });
   }
+
+  /*export async function getStock(id) {
+    try {
+        const response = await api.get(`/api/v1/productos/${id}/cantidad_en_stock/`);
+        return response.data;
+    } catch (error) {
+        console.error('Error al obtener el stock del producto:', error);
+        throw error;
+    }
+  } */
+  
+    export async function updateProductoStock(id, cantidad) {
+      try {
+          const response = await api.put(`/api/v1/productos/${id}/cantidad_en_stock/${cantidad}/`);
+          return response.data;
+      } catch (error) {
+          console.error('Error al actualizar el stock del producto:', error);
+          throw error;
+      }
+  }
+
+  export async function addProductoStock(id, cantidad) {
+    try {
+        const response = await api.put(`/api/v1/productos/${id}/cantidad_en_stock/${cantidad}/`);
+        return response.data;
+    } catch (error) {
+        console.error('Error al actualizar el stock del producto:', error);
+        throw error;
+    }
+}
+
+  
