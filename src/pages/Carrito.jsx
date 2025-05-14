@@ -1,10 +1,46 @@
 import React from 'react';
 import { useCart } from '../components/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { updateProductoStock, addProductoStock } from '../api/datos.api'; // Importa las funciones para actualizar el stock
 
 export function Carrito() {
     const { cart, cartTotal, removeFromCart, updateCartQuantity, stock } = useCart();
     const navigate = useNavigate();
+
+    // Función para manejar la actualización del stock al añadir o reducir cantidad
+    const handleQuantityChange = async (id, newQuantity, oldQuantity) => {
+        try {
+            const difference = newQuantity - oldQuantity;
+
+            if (difference > 0) {
+                // Si se aumenta la cantidad, reduce el stock en la base de datos
+                await updateProductoStock(id, difference);
+            } else if (difference < 0) {
+                // Si se reduce la cantidad, aumenta el stock en la base de datos
+                await addProductoStock(id, Math.abs(difference));
+            }
+
+            // Actualiza la cantidad en el carrito
+            updateCartQuantity(id, newQuantity);
+        } catch (error) {
+            console.error('Error al actualizar el stock del producto:', error);
+            alert('Hubo un error al actualizar el stock del producto.');
+        }
+    };
+
+    // Función para manejar la eliminación de un producto del carrito
+    const handleRemoveFromCart = async (id, quantity) => {
+        try {
+            // Restablece el stock en la base de datos
+            await addProductoStock(id, quantity);
+
+            // Elimina el producto del carrito
+            removeFromCart(id);
+        } catch (error) {
+            console.error('Error al restablecer el stock del producto:', error);
+            alert('Hubo un error al restablecer el stock del producto.');
+        }
+    };
 
     return (
         <div style={{ padding: '20px' }}>
@@ -31,13 +67,13 @@ export function Carrito() {
                             />
                             <div style={{ flex: 2 }}>
                                 <h3>{item.nombre}</h3>
-                                <p>{item.descripcion || 'No hay descripción disponible.'}</p>                                
+                                <p>{item.descripcion || 'No hay descripción disponible.'}</p>
                             </div>
                             <div style={{ flex: 1, textAlign: 'right' }}>
                                 <p>Precio: ${item.precio ? Number(item.precio).toFixed(2) : '0.00'}</p>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                                     <button
-                                        onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                                        onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.quantity)}
                                         disabled={item.quantity <= 1}
                                         style={{
                                             backgroundColor: item.quantity > 1 ? '#3498db' : '#ccc',
@@ -54,9 +90,10 @@ export function Carrito() {
                                     <p style={{ margin: '0 10px' }}>Cantidad: {item.quantity}</p>
                                     <button
                                         onClick={() =>
-                                            updateCartQuantity(
+                                            handleQuantityChange(
                                                 item.id,
-                                                Math.min(item.quantity + 1, stock[item.id] || item.cantidad_en_stock)
+                                                Math.min(item.quantity + 1, stock[item.id] || item.cantidad_en_stock),
+                                                item.quantity
                                             )
                                         }
                                         disabled={item.quantity >= (stock[item.id] || item.cantidad_en_stock)}
@@ -73,7 +110,7 @@ export function Carrito() {
                                     </button>
                                 </div>
                                 <button
-                                    onClick={() => removeFromCart(item.id)}
+                                    onClick={() => handleRemoveFromCart(item.id, item.quantity)}
                                     style={{
                                         backgroundColor: '#e74c3c',
                                         color: '#fff',

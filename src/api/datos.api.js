@@ -116,6 +116,7 @@ export const getPedidos = () => {
     }
   } */
   
+    //quitar productos del stock
     export async function updateProductoStock(id, cantidad) {
       try {
           const response = await api.put(`/api/v1/productos/${id}/cantidad_en_stock/${cantidad}/`);
@@ -126,6 +127,7 @@ export const getPedidos = () => {
       }
   }
 
+// Añadir productos al stock
   export async function addProductoStock(id, cantidad) {
     try {
         const response = await api.put(`/api/v1/productos/${id}/cantidad_en_stock/${cantidad}/`);

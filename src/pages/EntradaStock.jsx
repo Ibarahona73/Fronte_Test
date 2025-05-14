@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProducto, addProductoStock } from '../api/datos.api'; // Asegúrate de tener esta función para actualizar el stock
+import { getProducto, updateProductoStock } from '../api/datos.api'; // Asegúrate de tener esta función para actualizar el stock
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export function EntradaStock() {
@@ -35,11 +35,11 @@ export function EntradaStock() {
         }
 
         try {
-            // Calcular el nuevo stock sumando la cantidad seleccionada
+            // Calcular el nuevo stock
             const nuevoStock = producto.cantidad_en_stock + cantidad;
 
             // Actualizar el stock en la base de datos
-            await addProductoStock(id, nuevoStock);
+            await updateProductoStock(id, cantidad); // Sumar la cantidad al stock actual
 
             alert('Entrada de stock registrada exitosamente.');
             navigate('/inventario'); // Redirigir al inventario después de registrar la entrada
@@ -59,21 +59,21 @@ export function EntradaStock() {
                 {/* Imagen del producto */}
                 <div className="col-md-6">
                     <img
-                        src={producto?.imagen_base64 ? `data:image/jpeg;base64,${producto.imagen_base64}` : 'https://via.placeholder.com/300'}
-                        alt={producto?.nombre}
+                        src={producto.imagen_base64 ? `data:image/jpeg;base64,${producto.imagen_base64}` : 'https://via.placeholder.com/300'}
+                        alt={producto.nombre}
                         className="img-fluid rounded"
                     />
                 </div>
 
                 {/* Formulario de entrada de stock */}
                 <div className="col-md-6">
-                    <h2>{producto?.nombre}</h2>
+                    <h2>{producto.nombre}</h2>
                     <form onSubmit={handleSubmit}>
                         {/* Tamaño */}
                         <div className="mb-3">
                             <label htmlFor="tamaño" className="form-label">Tamaño</label>
                             <select id="tamaño" className="form-select" disabled>
-                                <option>{producto?.tamaño}</option>
+                                <option>{producto.tamaño}</option>
                             </select>
                         </div>
 

@@ -41,8 +41,11 @@ export function SalidaStock() {
         }
 
         try {
+            // Calcular el nuevo stock
+            const nuevoStock = producto.cantidad_en_stock - cantidad;
+
             // Actualizar el stock en la base de datos
-            await updateProductoStock(id, cantidad);
+            await updateProductoStock(id, -cantidad); // Restar la cantidad del stock actual
 
             alert('Salida de stock registrada exitosamente.');
             navigate('/inventario'); // Redirigir al inventario después de registrar la salida
@@ -83,20 +86,15 @@ export function SalidaStock() {
                         {/* Cantidad */}
                         <div className="mb-3">
                             <label htmlFor="cantidad" className="form-label">Cantidad</label>
-                            <select
+                            <input
+                                type="number"
                                 id="cantidad"
-                                className="form-select"
+                                className="form-control"
                                 value={cantidad}
                                 onChange={(e) => setCantidad(Number(e.target.value))}
-                                size={Math.min(producto.cantidad_en_stock, 5)} // Mostrar hasta 5 opciones con scrollbar si hay más
-                                style={{ overflowY: 'auto' }}
-                            >
-                                {Array.from({ length: producto.cantidad_en_stock }, (_, i) => i + 1).map((num) => (
-                                    <option key={num} value={num}>
-                                        {num}
-                                    </option>
-                                ))}
-                            </select>
+                                min="1"
+                                max={producto.cantidad_en_stock}
+                            />
                         </div>
 
                         {/* Descripción */}
