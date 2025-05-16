@@ -38,7 +38,7 @@ export function Listado() {
             }
         }
         cargaProductos();
-    }, []);
+    }, []); // Asegúrate de que solo se ejecute una vez
 
     // Aplicar filtros
     useEffect(() => {

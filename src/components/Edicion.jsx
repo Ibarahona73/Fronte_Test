@@ -27,7 +27,7 @@ export function Edicion() {
             }
         }
         fetchProducto();
-    }, [id, reset, navigate]);
+    }, [id, reset, navigate]); // Asegúrate de que las dependencias sean correctas
 
     const handleImageChange = async (e) => {
         const files = Array.from(e.target.files);

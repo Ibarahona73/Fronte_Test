@@ -25,7 +25,7 @@ export function EntradaStock() {
             }
         }
         fetchProducto();
-    }, [id]);
+    }, [id]); // Asegúrate de que solo dependa de `id`
 
     const handleSubmit = async (e) => {
         e.preventDefault();

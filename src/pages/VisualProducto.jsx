@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProducto, getProductos } from '../api/datos.api';
+import { getProducto, getProductos, updateProductoStock } from '../api/datos.api'; // Importa la función para actualizar el stock
 import { Navigation } from '../components/Navigation';
 import { useCart } from '../components/CartContext';
 
@@ -14,17 +14,13 @@ export function VisualProducto() {
     const [error, setError] = useState(null);
     const [cantidad, setCantidad] = useState(1);
     const [showCartPopup, setShowCartPopup] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         async function fetchProducto() {
             try {
                 const data = await getProducto(id);
-
-                // Calcular el stock restante considerando los productos en el carrito
-                const productoEnCarrito = cart.find((item) => item.id === data.id);
-                const stockRestante = data.cantidad_en_stock - (productoEnCarrito?.quantity || 0);
-
-                setProducto({ ...data, cantidad_en_stock: stockRestante });
+                setProducto(data); // Usa el stock directamente del backend
             } catch (err) {
                 console.error('Error fetching producto:', err);
                 setError('Error al cargar el producto');
@@ -33,6 +29,10 @@ export function VisualProducto() {
             }
         }
 
+        fetchProducto();
+    }, [id]); // Solo depende del ID del producto
+
+    useEffect(() => {
         async function fetchProductosRelacionados() {
             try {
                 const productos = await getProductos();
@@ -42,9 +42,8 @@ export function VisualProducto() {
             }
         }
 
-        fetchProducto();
         fetchProductosRelacionados();
-    }, [id, cart]); // Volver a cargar el producto si el carrito cambia
+    }, [id]); // Asegúrate de que las dependencias sean correctas
 
     if (loading) return <div>Cargando producto...</div>;
     if (error) return <div style={{ color: 'red' }}>{error}</div>;
@@ -54,15 +53,37 @@ export function VisualProducto() {
         setCantidad(value);
     };
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
+        if (isSubmitting) return; // Evita múltiples ejecuciones
+        setIsSubmitting(true);
+
         if (cantidad > producto.cantidad_en_stock) {
             alert('No hay suficiente stock disponible.');
+            setIsSubmitting(false);
             return;
         }
 
-        addToCart(producto, cantidad);
-        setShowCartPopup(true);
-        setTimeout(() => setShowCartPopup(false), 4000); // Ocultar el popup después de 4 segundos
+        try {
+            // Reducir el stock en la base de datos
+            await updateProductoStock(producto.id, -cantidad);
+
+            // Reducir el stock en el frontend
+            setProducto((prevProducto) => ({
+                ...prevProducto,
+                cantidad_en_stock: prevProducto.cantidad_en_stock - cantidad,
+            }));
+
+            // Añadir al carrito
+            addToCart(producto, cantidad);
+
+            setShowCartPopup(true);
+            setTimeout(() => setShowCartPopup(false), 4000); // Ocultar el popup después de 4 segundos
+        } catch (error) {
+            console.error('Error al actualizar el stock:', error);
+            alert('Hubo un error al actualizar el stock.');
+        } finally {
+            setIsSubmitting(false); // Restablece el estado
+        }
     };
 
     return (

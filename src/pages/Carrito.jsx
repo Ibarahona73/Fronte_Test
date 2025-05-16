@@ -14,7 +14,7 @@ export function Carrito() {
 
             if (difference > 0) {
                 // Si se aumenta la cantidad, reduce el stock en la base de datos
-                await updateProductoStock(id, difference);
+                await updateProductoStock(id, -difference);
             } else if (difference < 0) {
                 // Si se reduce la cantidad, aumenta el stock en la base de datos
                 await addProductoStock(id, Math.abs(difference));
@@ -31,10 +31,10 @@ export function Carrito() {
     // Función para manejar la eliminación de un producto del carrito
     const handleRemoveFromCart = async (id, quantity) => {
         try {
-            // Restablece el stock en la base de datos
+            // Restaurar el stock en la base de datos
             await addProductoStock(id, quantity);
 
-            // Elimina el producto del carrito
+            // Eliminar el producto del carrito
             removeFromCart(id);
         } catch (error) {
             console.error('Error al restablecer el stock del producto:', error);
@@ -132,11 +132,23 @@ export function Carrito() {
                 <div style={{ flex: 1, border: '1px solid #ddd', padding: '20px', borderRadius: '5px' }}>
                     <h3>Resumen</h3>
                     <p>Subtotal: ${cartTotal.toFixed(2)}</p>
-                    <p>Envío: $9.00</p>
+                    <p>Envío: $0.00</p>
                     <p>ISV: ${(cartTotal * 0.15).toFixed(2)}</p>
-                    <h4>Estimado: ${(cartTotal + 9 + cartTotal * 0.15).toFixed(2)}</h4>
+                    <h4>Estimado: ${(cartTotal + 0 + cartTotal * 0.15).toFixed(2)}</h4>
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() =>
+                            navigate('/infoclient', {
+                                state: {
+                                    subtotal: cartTotal,
+                                    isv: cartTotal * 0.15,
+                                    total: cartTotal + 0 + cartTotal * 0.15, // Incluye el envío
+                                    resumen: cart.map((item) => ({
+                                        nombre: item.nombre,
+                                        cantidad: item.quantity,
+                                    })),
+                                },
+                            })
+                        }
                         style={{
                             backgroundColor: '#3498db',
                             color: '#fff',
