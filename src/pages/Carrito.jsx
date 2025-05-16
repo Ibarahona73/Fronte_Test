@@ -2,6 +2,7 @@ import React from 'react';
 import { useCart } from '../components/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { updateProductoStock, addProductoStock } from '../api/datos.api'; // Importa las funciones para actualizar el stock
+import Swal from 'sweetalert2';
 
 export function Carrito() {
     const { cart, cartTotal, removeFromCart, updateCartQuantity, stock } = useCart();
@@ -12,6 +13,9 @@ export function Carrito() {
         try {
             const difference = newQuantity - oldQuantity;
 
+            // Actualiza la cantidad en el carrito
+            await updateCartQuantity(id, newQuantity);
+
             if (difference > 0) {
                 // Si se aumenta la cantidad, reduce el stock en la base de datos
                 await updateProductoStock(id, -difference);
@@ -20,11 +24,15 @@ export function Carrito() {
                 await addProductoStock(id, Math.abs(difference));
             }
 
-            // Actualiza la cantidad en el carrito
-            updateCartQuantity(id, newQuantity);
+            
+            
         } catch (error) {
             console.error('Error al actualizar el stock del producto:', error);
-            alert('Hubo un error al actualizar el stock del producto.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un error al actualizar el stock del producto.',
+            });
         }
     };
 
@@ -38,7 +46,11 @@ export function Carrito() {
             removeFromCart(id);
         } catch (error) {
             console.error('Error al restablecer el stock del producto:', error);
-            alert('Hubo un error al restablecer el stock del producto.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un error al restablecer el stock del producto.',
+            });
         }
     };
 

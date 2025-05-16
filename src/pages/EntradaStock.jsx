@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProducto, updateProductoStock } from '../api/datos.api'; // Asegúrate de tener esta función para actualizar el stock
+import Swal from 'sweetalert2';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export function EntradaStock() {
@@ -30,7 +31,11 @@ export function EntradaStock() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!descripcion.trim()) {
-            alert('Por favor, ingresa una descripción para la entrada de stock.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo requerido',
+                text: 'Por favor, ingresa una descripción para la entrada de stock.',
+            });
             return;
         }
 
@@ -41,11 +46,19 @@ export function EntradaStock() {
             // Actualizar el stock en la base de datos
             await updateProductoStock(id, cantidad); // Sumar la cantidad al stock actual
 
-            alert('Entrada de stock registrada exitosamente.');
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'Entrada de stock registrada exitosamente.',
+            });
             navigate('/inventario'); // Redirigir al inventario después de registrar la entrada
         } catch (err) {
-            console.error('Error al registrar la entrada de stock:', err);
-            alert('Hubo un error al registrar la entrada de stock.');
+            console.error('Error al registrar la entrada de stock:', err);            
+            Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un error al registrar la entrada de stock.',
+            });
         }
     };
 

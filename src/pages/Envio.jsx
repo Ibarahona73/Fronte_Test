@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PayPalButtons } from '@paypal/react-paypal-js';
+import Swal from 'sweetalert2';
+import { useCart } from '../components/CartContext'; // Asegúrate de tener este hook
 
 export function Envio() {
     const location = useLocation();
     const navigate = useNavigate();
+    const { clearCart } = useCart(); // <-- Importante
 
     const { subtotal, isv, resumen, formData } = location.state || {
         subtotal: 0,
@@ -90,26 +93,41 @@ export function Envio() {
                 <PayPalButtons
                     style={{ layout: 'vertical' }}
                     createOrder={(data, actions) => {
+                        // Genera la descripción con los nombres de los productos
+                        const descripcionProductos = resumen.length === 1
+                            ? resumen[0].nombre
+                            : resumen.map(item => item.nombre).join(', ');
+
                         return actions.order.create({
                             purchase_units: [
                                 {
                                     amount: {
                                         value: total.toFixed(2), // Total a pagar
                                     },
-                                    description: 'Compra en Tienda Online',
+                                    description: descripcionProductos,
                                 },
                             ],
                         });
                     }}
                     onApprove={(data, actions) => {
                         return actions.order.capture().then((details) => {
-                            alert(`Pago completado por ${details.payer.name.given_name}`);
-                            navigate('/'); // Redirige al inicio o a una página de confirmación
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Pago completado',
+                                text: `Pago completado por ${details.payer.name.given_name}`,
+                            }).then(() => {
+                                clearCart(); // Vacía el carrito
+                                navigate('/'); // Redirige al inicio
+                            });
                         });
                     }}
                     onError={(err) => {
                         console.error('Error en el pago:', err);
-                        alert('Hubo un error al procesar el pago.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Hubo un error al procesar el pago.',
+                        });
                     }}
                 />
             </div>

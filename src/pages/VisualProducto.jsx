@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getProducto, getProductos, updateProductoStock } from '../api/datos.api'; // Importa la función para actualizar el stock
 import { Navigation } from '../components/Navigation';
 import { useCart } from '../components/CartContext';
+import Swal from 'sweetalert2';
 
 export function VisualProducto() {
     const { id } = useParams();
@@ -58,7 +59,11 @@ export function VisualProducto() {
         setIsSubmitting(true);
 
         if (cantidad > producto.cantidad_en_stock) {
-            alert('No hay suficiente stock disponible.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stock insuficiente',
+                text: 'No hay suficiente stock disponible.',
+            });
             setIsSubmitting(false);
             return;
         }
@@ -80,7 +85,11 @@ export function VisualProducto() {
             setTimeout(() => setShowCartPopup(false), 4000); // Ocultar el popup después de 4 segundos
         } catch (error) {
             console.error('Error al actualizar el stock:', error);
-            alert('Hubo un error al actualizar el stock.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un error al actualizar el stock.',
+            });
         } finally {
             setIsSubmitting(false); // Restablece el estado
         }

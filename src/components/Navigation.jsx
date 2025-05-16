@@ -22,7 +22,7 @@ export function Navigation() {
                 <div className="d-flex ms-auto">
                     {/* Ícono del carrito a la derecha */}
                     <Link className="nav-link text-white" to="/carrito" style={{ position: 'relative' }}>
-                        <i className="bi bi-cart" style={{ fontSize: '1.5rem' }}></i>
+                        <i className="bi bi-cart" style={{ fontSize: '1.8rem' }}></i>
                         {totalItems > 0 && (
                             <span style={{
                                 position: 'absolute',
@@ -39,6 +39,16 @@ export function Navigation() {
                         )}
                     </Link>
                 </div>
+            </div>
+            <div className="ms-auto d-flex align-items-center gap-3">                                    
+                    <Link to="/login" className="nav-link">
+                    <i className="bi bi-person-circle" 
+                    style={{ 
+                        fontSize: '1.8rem',
+                        color:'white',
+                        padding: '15px'
+                    }}></i>
+                </Link>
             </div>
         </nav>
     );

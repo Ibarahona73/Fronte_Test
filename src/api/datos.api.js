@@ -105,17 +105,7 @@ export const getPedidos = () => {
       throw error; // Propaga el error para manejarlo en el componente
     });
   }
-
-  /*export async function getStock(id) {
-    try {
-        const response = await api.get(`/api/v1/productos/${id}/cantidad_en_stock/`);
-        return response.data;
-    } catch (error) {
-        console.error('Error al obtener el stock del producto:', error);
-        throw error;
-    }
-  } */
-  
+ 
     //quitar productos del stock
     export async function updateProductoStock(id, cantidad) {
       try {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Swal from 'sweetalert2';
 
 export function Login() {
   const [user, setUser] = useState('');
@@ -7,13 +8,17 @@ export function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Aquí va la lógica de autenticación
-    alert('Login simulado');
+    Swal.fire({
+        icon: 'success',
+        title: '¡Bienvenido!',
+        text: 'Login simulado',
+        });
   };
 
   return (
     <div style={{
       display: 'flex',
-      height: '100vh',
+      height: '90vh',
       alignItems: 'center',
       justifyContent: 'center',
       background: '#fff'
@@ -29,7 +34,7 @@ export function Login() {
         <img
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTq2pwE1N4DauKGIcLHrcj30esYCiIxXkJHaA&s"
           alt="UTH Florida"
-          style={{ width: 320, marginBottom: 20 }}
+          style={{ width: 120, marginBottom: 20 }}
         />
         <h1 style={{ fontWeight: 'bold', marginBottom: 10 }}>UTH FLORIDA</h1>
         <p style={{ textAlign: 'center', maxWidth: 200 }}>

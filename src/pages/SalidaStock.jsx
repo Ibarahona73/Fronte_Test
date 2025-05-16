@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProducto, updateProductoStock } from '../api/datos.api'; // Asegúrate de tener esta función para actualizar el stock
+import Swal from 'sweetalert2';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export function SalidaStock() {
@@ -30,13 +31,21 @@ export function SalidaStock() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!descripcion.trim()) {
-            alert('Por favor, ingresa una descripción para la salida de stock.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo requerido',
+                text: 'Por favor, ingresa una descripción para la salida de stock.',
+            });
             return;
         }
 
         // Validar que la cantidad seleccionada no exceda el stock disponible
         if (cantidad > producto.cantidad_en_stock) {
-            alert('La cantidad seleccionada excede el stock disponible.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cantidad excedida',
+                text: 'La cantidad seleccionada excede el stock disponible.',
+            });
             return;
         }
 
@@ -47,11 +56,19 @@ export function SalidaStock() {
             // Actualizar el stock en la base de datos
             await updateProductoStock(id, -cantidad); // Restar la cantidad del stock actual
 
-            alert('Salida de stock registrada exitosamente.');
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'Salida de stock registrada exitosamente.',
+            });
             navigate('/inventario'); // Redirigir al inventario después de registrar la salida
         } catch (err) {
             console.error('Error al registrar la salida de stock:', err);
-            alert('Hubo un error al registrar la salida de stock.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un error al registrar la salida de stock.',
+            });
         }
     };
 
