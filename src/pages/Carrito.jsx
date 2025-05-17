@@ -5,10 +5,11 @@ import { updateProductoStock, addProductoStock } from '../api/datos.api'; // Imp
 import Swal from 'sweetalert2';
 
 export function Carrito() {
+    // Obtiene el carrito, total, funciones y stock del contexto
     const { cart, cartTotal, removeFromCart, updateCartQuantity, stock } = useCart();
     const navigate = useNavigate();
 
-    // Función para manejar la actualización del stock al añadir o reducir cantidad
+    // Maneja el cambio de cantidad de un producto en el carrito
     const handleQuantityChange = async (id, newQuantity, oldQuantity) => {
         try {
             const difference = newQuantity - oldQuantity;
@@ -23,10 +24,8 @@ export function Carrito() {
                 // Si se reduce la cantidad, aumenta el stock en la base de datos
                 await addProductoStock(id, Math.abs(difference));
             }
-
-            
-            
         } catch (error) {
+            // Muestra error si falla la actualización
             console.error('Error al actualizar el stock del producto:', error);
             Swal.fire({
                 icon: 'error',
@@ -36,15 +35,16 @@ export function Carrito() {
         }
     };
 
-    // Función para manejar la eliminación de un producto del carrito
+    // Maneja la eliminación de un producto del carrito
     const handleRemoveFromCart = async (id, quantity) => {
         try {
-            // Restaurar el stock en la base de datos
+            // Restaura el stock en la base de datos
             await addProductoStock(id, quantity);
 
-            // Eliminar el producto del carrito
+            // Elimina el producto del carrito
             removeFromCart(id);
         } catch (error) {
+            // Muestra error si falla la restauración
             console.error('Error al restablecer el stock del producto:', error);
             Swal.fire({
                 icon: 'error',
@@ -58,7 +58,7 @@ export function Carrito() {
         <div style={{ padding: '20px' }}>
             <h1>Carrito</h1>
             <div style={{ display: 'flex', gap: '20px' }}>
-                {/* Lista de productos */}
+                {/* Lista de productos en el carrito */}
                 <div style={{ flex: 2 }}>
                     {cart.map((item, index) => (
                         <div
@@ -72,18 +72,22 @@ export function Carrito() {
                                 paddingBottom: '10px',
                             }}
                         >
+                            {/* Imagen del producto */}
                             <img
                                 src={item.imagen_base64 ? `data:image/jpeg;base64,${item.imagen_base64}` : 'https://via.placeholder.com/100'}
                                 alt={item.nombre}
                                 style={{ width: '200px', height: '100px', marginRight: '20px' }}
                             />
+                            {/* Información del producto */}
                             <div style={{ flex: 2 }}>
                                 <h3>{item.nombre}</h3>
                                 <p>{item.descripcion || 'No hay descripción disponible.'}</p>
                             </div>
+                            {/* Controles de cantidad y eliminación */}
                             <div style={{ flex: 1, textAlign: 'right' }}>
                                 <p>Precio: ${item.precio ? Number(item.precio).toFixed(2) : '0.00'}</p>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                    {/* Botón para disminuir cantidad */}
                                     <button
                                         onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.quantity)}
                                         disabled={item.quantity <= 1}
@@ -100,6 +104,7 @@ export function Carrito() {
                                         -
                                     </button>
                                     <p style={{ margin: '0 10px' }}>Cantidad: {item.quantity}</p>
+                                    {/* Botón para aumentar cantidad */}
                                     <button
                                         onClick={() =>
                                             handleQuantityChange(
@@ -121,6 +126,7 @@ export function Carrito() {
                                         +
                                     </button>
                                 </div>
+                                {/* Botón para eliminar producto */}
                                 <button
                                     onClick={() => handleRemoveFromCart(item.id, item.quantity)}
                                     style={{
@@ -145,8 +151,9 @@ export function Carrito() {
                     <h3>Resumen</h3>
                     <p>Subtotal: ${cartTotal.toFixed(2)}</p>
                     <p>Envío: $0.00</p>
-                    <p>ISV: ${(cartTotal * 0.15).toFixed(2)}</p>
-                    <h4>Estimado: ${(cartTotal + 0 + cartTotal * 0.15).toFixed(2)}</h4>
+                    <p>ISV: {(cartTotal * 0.15).toFixed(2)}</p>
+                    <h4>Estimado: {(cartTotal + 0 + cartTotal * 0.15).toFixed(2)}</h4>
+                    {/* Botón para proceder al pago */}
                     <button
                         onClick={() =>
                             navigate('/infoclient', {
@@ -173,6 +180,7 @@ export function Carrito() {
                     >
                         Proceder a Pagar
                     </button>
+                    {/* Botón para regresar */}
                     <button
                         onClick={() => navigate(-1)}
                         style={{

@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { compressImage } from "../imageUtils";
 
 export function CrearInvPedido() {
+    // Inicializa react-hook-form para manejar el formulario
     const { 
         register, 
         handleSubmit, 
@@ -23,11 +24,12 @@ export function CrearInvPedido() {
     });
     
     const navigate = useNavigate();
-    const [previewImages, setPreviewImages] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [productos, setProductos] = useState([]);
-    const selectedColor = watch("colores");
+    const [previewImages, setPreviewImages] = useState([]); // Estado para las imágenes seleccionadas
+    const [isSubmitting, setIsSubmitting] = useState(false); // Estado para evitar doble envío
+    const [productos, setProductos] = useState([]); // Estado para productos (no usado aquí)
+    const selectedColor = watch("colores"); // Observa el color seleccionado
 
+    // Maneja el cambio de imágenes seleccionadas
     const handleImageChange = async (e) => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
@@ -57,34 +59,37 @@ export function CrearInvPedido() {
         setValue("imagenes", newImagePreviews, { shouldValidate: true });
     };
 
-    // Función para convertir un archivo a Base64
+    // Convierte un archivo a base64
     const convertToBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result.split(",")[1]); // Obtener solo la parte Base64
+            reader.onloadend = () => resolve(reader.result.split(",")[1]); // Solo la parte base64
             reader.onerror = (error) => reject(error);
             reader.readAsDataURL(file);
         });
     };
 
+    // Elimina una imagen de la vista previa
     const removeImage = (index) => {
         const updatedImages = previewImages.filter((_, i) => i !== index);
         setPreviewImages(updatedImages);
         setValue("imagenes", updatedImages);
     };
 
-    
+    // Maneja el envío del formulario
     const onSubmit = async (formData) => {
         if (isSubmitting) return;
         setIsSubmitting(true);
 
         try {
+            // Valida que haya al menos una imagen
             if (previewImages.length === 0) {
                 toast.error("Debes seleccionar al menos una imagen");
                 setIsSubmitting(false);
                 return;
             }
 
+            // Construye el objeto del producto a enviar
             const productData = {
                 nombre: formData.nombre.trim(),
                 precio: parseFloat(formData.precio),
@@ -93,14 +98,15 @@ export function CrearInvPedido() {
                 categoria: formData.categoria,
                 tamaño: formData.tamaño,
                 colores: formData.colores,
-                imagen_base64: previewImages[0].base64, // Enviar Base64
+                imagen_base64: previewImages[0].base64, // Solo la primera imagen
             };
 
+            // Llama a la API para crear el producto
             await createProducto(productData);
             toast.success("Producto creado exitosamente");
-            reset();
-            setPreviewImages([]);
-            navigate("/inventario");
+            reset(); // Limpia el formulario
+            setPreviewImages([]); // Limpia las imágenes
+            navigate("/inventario"); // Redirige al inventario
         } catch (error) {
             console.error("Error al crear el producto:", error);
             toast.error("Error al crear el producto");
@@ -155,6 +161,7 @@ export function CrearInvPedido() {
                                             className="img-thumbnail w-100 h-100 object-fit-cover"
                                             style={{ objectFit: 'contain' }}
                                         />
+                                        {/* Botón para eliminar la imagen */}
                                         <button 
                                             type="button"
                                             className="position-absolute top-0 end-0 btn btn-sm btn-danger rounded-circle m-1"
@@ -163,6 +170,7 @@ export function CrearInvPedido() {
                                         >
                                             <i className="bi bi-x"></i>
                                         </button>
+                                        {/* Nombre y tamaño de la imagen */}
                                         <div className="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-50 text-white p-1 small">
                                             {image.name.substring(0, 15)}{image.name.length > 15 ? '...' : ''}
                                             <br />
@@ -392,8 +400,7 @@ export function CrearInvPedido() {
                         </div>
                     </div>
 
-                   
-                   {/* Botones de acción */}
+                    {/* Botones de acción */}
                     <div className="d-flex justify-content-end gap-3 pt-4 border-top">
                         <button 
                             type="button"

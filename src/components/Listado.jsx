@@ -5,11 +5,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from "react";
 import React from 'react';
 
+// Componente para mostrar el listado de productos en inventario con filtros y acciones
 export function Listado() {
-    const [productos, setProductos] = useState([]);
-    const [filteredProductos, setFilteredProductos] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [productos, setProductos] = useState([]); // Todos los productos
+    const [filteredProductos, setFilteredProductos] = useState([]); // Productos filtrados
+    const [loading, setLoading] = useState(true); // Estado de carga
+    const [error, setError] = useState(null); // Estado de error
     const [filters, setFilters] = useState({
         categoria: '',
         tamaño: '',
@@ -18,10 +19,12 @@ export function Listado() {
 
     const navigate = useNavigate();
 
+    // Cargar productos al montar el componente
     useEffect(() => {
         async function cargaProductos() {
             try {
                 const res = await getProductos();
+                // Agrega la imagen en base64 si existe
                 const productosConImagenes = res.map(producto => ({
                     ...producto,
                     imagen: producto.imagen_base64
@@ -38,9 +41,9 @@ export function Listado() {
             }
         }
         cargaProductos();
-    }, []); // Asegúrate de que solo se ejecute una vez
+    }, []); // Solo una vez al montar
 
-    // Aplicar filtros
+    // Aplicar filtros cada vez que cambian los filtros o los productos
     useEffect(() => {
         let result = [...productos];
 
@@ -293,6 +296,7 @@ export function Listado() {
                     </div>
                 ))}
 
+                {/* Mensaje si no hay productos filtrados */}
                 {filteredProductos.length === 0 && (
                     <div
                         style={{

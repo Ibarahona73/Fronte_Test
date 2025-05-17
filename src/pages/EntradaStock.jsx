@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProducto, updateProductoStock } from '../api/datos.api'; // Asegúrate de tener esta función para actualizar el stock
+import { getProducto, updateProductoStock } from '../api/datos.api'; // Funciones para obtener y actualizar producto
 import Swal from 'sweetalert2';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export function EntradaStock() {
     const { id } = useParams(); // Obtener el ID del producto desde la URL
     const navigate = useNavigate();
-    const [producto, setProducto] = useState(null);
-    const [cantidad, setCantidad] = useState(1);
-    const [descripcion, setDescripcion] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [producto, setProducto] = useState(null); // Estado para el producto
+    const [cantidad, setCantidad] = useState(1); // Estado para la cantidad a ingresar
+    const [descripcion, setDescripcion] = useState(''); // Estado para la descripción
+    const [loading, setLoading] = useState(true); // Estado de carga
+    const [error, setError] = useState(null); // Estado de error
 
+    // Cargar los datos del producto al montar el componente
     useEffect(() => {
         async function fetchProducto() {
             try {
@@ -26,10 +27,12 @@ export function EntradaStock() {
             }
         }
         fetchProducto();
-    }, [id]); // Asegúrate de que solo dependa de `id`
+    }, [id]); // Solo se ejecuta cuando cambia el id
 
+    // Maneja el envío del formulario de entrada de stock
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Validar que la descripción no esté vacía
         if (!descripcion.trim()) {
             Swal.fire({
                 icon: 'warning',
@@ -40,28 +43,32 @@ export function EntradaStock() {
         }
 
         try {
-            // Calcular el nuevo stock
+            // Calcular el nuevo stock (opcional, aquí solo para referencia)
             const nuevoStock = producto.cantidad_en_stock + cantidad;
 
-            // Actualizar el stock en la base de datos
-            await updateProductoStock(id, cantidad); // Sumar la cantidad al stock actual
+            // Actualizar el stock en la base de datos 
+            await updateProductoStock(id, cantidad);
 
+            // Mostrar mensaje de éxito
             Swal.fire({
                 icon: 'success',
                 title: '¡Éxito!',
                 text: 'Entrada de stock registrada exitosamente.',
             });
-            navigate('/inventario'); // Redirigir al inventario después de registrar la entrada
+            // Redirigir al inventario después de registrar la entrada
+            navigate('/inventario');
         } catch (err) {
+            // Mostrar mensaje de error si falla el registro
             console.error('Error al registrar la entrada de stock:', err);            
             Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Hubo un error al registrar la entrada de stock.',
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un error al registrar la entrada de stock.',
             });
         }
     };
 
+    // Mostrar mensaje de carga o error si corresponde
     if (loading) return <div>Cargando producto...</div>;
     if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
@@ -82,7 +89,7 @@ export function EntradaStock() {
                 <div className="col-md-6">
                     <h2>{producto.nombre}</h2>
                     <form onSubmit={handleSubmit}>
-                        {/* Tamaño */}
+                        {/* Tamaño del producto (solo lectura) */}
                         <div className="mb-3">
                             <label htmlFor="tamaño" className="form-label">Tamaño</label>
                             <select id="tamaño" className="form-select" disabled>
@@ -90,7 +97,7 @@ export function EntradaStock() {
                             </select>
                         </div>
 
-                        {/* Cantidad */}
+                        {/* Cantidad a ingresar */}
                         <div className="mb-3">
                             <label htmlFor="cantidad" className="form-label">Cantidad</label>
                             <input
@@ -103,7 +110,7 @@ export function EntradaStock() {
                             />
                         </div>
 
-                        {/* Descripción */}
+                        {/* Descripción de la entrada */}
                         <div className="mb-3">
                             <label htmlFor="descripcion" className="form-label">Descripción</label>
                             <textarea
@@ -116,7 +123,7 @@ export function EntradaStock() {
                             ></textarea>
                         </div>
 
-                        {/* Botones */}
+                        {/* Botones de acción */}
                         <div className="d-flex gap-3">
                             <button type="submit" className="btn btn-primary">
                                 Registrar Entrada

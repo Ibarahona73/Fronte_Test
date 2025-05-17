@@ -7,12 +7,13 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 export function SalidaStock() {
     const { id } = useParams(); // Obtener el ID del producto desde la URL
     const navigate = useNavigate();
-    const [producto, setProducto] = useState(null);
-    const [cantidad, setCantidad] = useState(1);
-    const [descripcion, setDescripcion] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [producto, setProducto] = useState(null); // Estado para el producto
+    const [cantidad, setCantidad] = useState(1); // Estado para la cantidad a retirar
+    const [descripcion, setDescripcion] = useState(''); // Estado para la descripción
+    const [loading, setLoading] = useState(true); // Estado de carga
+    const [error, setError] = useState(null); // Estado de error
 
+    // Cargar los datos del producto al montar el componente
     useEffect(() => {
         async function fetchProducto() {
             try {
@@ -26,10 +27,12 @@ export function SalidaStock() {
             }
         }
         fetchProducto();
-    }, [id]); // Asegúrate de que solo dependa de `id`
+    }, [id]); // Solo se ejecuta cuando cambia el id
 
+    // Maneja el envío del formulario de salida de stock
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Validar que la descripción no esté vacía
         if (!descripcion.trim()) {
             Swal.fire({
                 icon: 'warning',
@@ -50,19 +53,22 @@ export function SalidaStock() {
         }
 
         try {
-            // Calcular el nuevo stock
+            // Calcular el nuevo stock (opcional, aquí solo para referencia)
             const nuevoStock = producto.cantidad_en_stock - cantidad;
 
-            // Actualizar el stock en la base de datos
-            await updateProductoStock(id, -cantidad); // Restar la cantidad del stock actual
+            // Actualizar el stock en la base de datos (resta la cantidad al stock actual)
+            await updateProductoStock(id, -cantidad);
 
+            // Mostrar mensaje de éxito
             Swal.fire({
                 icon: 'success',
                 title: '¡Éxito!',
                 text: 'Salida de stock registrada exitosamente.',
             });
-            navigate('/inventario'); // Redirigir al inventario después de registrar la salida
+            // Redirigir al inventario después de registrar la salida
+            navigate('/inventario');
         } catch (err) {
+            // Mostrar mensaje de error si falla el registro
             console.error('Error al registrar la salida de stock:', err);
             Swal.fire({
                 icon: 'error',
@@ -72,6 +78,7 @@ export function SalidaStock() {
         }
     };
 
+    // Mostrar mensaje de carga o error si corresponde
     if (loading) return <div>Cargando producto...</div>;
     if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
@@ -92,7 +99,7 @@ export function SalidaStock() {
                 <div className="col-md-6">
                     <h2>{producto.nombre}</h2>
                     <form onSubmit={handleSubmit}>
-                        {/* Tamaño */}
+                        {/* Tamaño del producto (solo lectura) */}
                         <div className="mb-3">
                             <label htmlFor="tamaño" className="form-label">Tamaño</label>
                             <select id="tamaño" className="form-select" disabled>
@@ -100,7 +107,7 @@ export function SalidaStock() {
                             </select>
                         </div>
 
-                        {/* Cantidad */}
+                        {/* Cantidad a retirar */}
                         <div className="mb-3">
                             <label htmlFor="cantidad" className="form-label">Cantidad</label>
                             <input
@@ -114,7 +121,7 @@ export function SalidaStock() {
                             />
                         </div>
 
-                        {/* Descripción */}
+                        {/* Descripción de la salida */}
                         <div className="mb-3">
                             <label htmlFor="descripcion" className="form-label">Descripción</label>
                             <textarea
@@ -127,7 +134,7 @@ export function SalidaStock() {
                             ></textarea>
                         </div>
 
-                        {/* Botones */}
+                        {/* Botones de acción */}
                         <div className="d-flex gap-3">
                             <button type="submit" className="btn btn-primary">
                                 Registrar Salida

@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import Swal from 'sweetalert2';
-import { useCart } from '../components/CartContext'; // Asegúrate de tener este hook
+import { useCart } from '../components/CartContext'; // Hook para manipular el carrito
 
 export function Envio() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { clearCart } = useCart(); // <-- Importante
+    const { clearCart } = useCart(); // Función para vaciar el carrito
 
+    // Obtiene los datos enviados desde la página anterior
     const { subtotal, isv, resumen, formData } = location.state || {
         subtotal: 0,
         isv: 0,
@@ -16,6 +17,7 @@ export function Envio() {
         formData: {},
     };
 
+    // Opciones de envío disponibles
     const shippingOptions = [
         { id: 'ups_ground', label: 'UPS Ground', cost: 2.20 },
         { id: 'ups_3day', label: 'UPS 3 Day Select', cost: 5.50 },
@@ -23,9 +25,11 @@ export function Envio() {
         { id: 'ups_nextday', label: 'UPS Next Day Air', cost: 12.50 },
     ];
 
+    // Estado para el método de envío seleccionado y código de descuento
     const [selectedShipping, setSelectedShipping] = useState(shippingOptions[0].cost);
     const [discountCode, setDiscountCode] = useState('');
 
+    // Construye la dirección de envío a partir de formData
     const shippingAddress = [
         formData.company && formData.company.trim(),
         formData.address && formData.address.trim(),
@@ -33,8 +37,10 @@ export function Envio() {
         .filter(Boolean)
         .join(', ');
 
+    // Calcula el total sumando subtotal, ISV y envío
     const total = subtotal + isv + selectedShipping;
 
+    // Maneja el cambio de método de envío
     const handleShippingChange = (e) => {
         const selectedCost = parseFloat(e.target.value);
         setSelectedShipping(selectedCost);
@@ -54,6 +60,7 @@ export function Envio() {
             </p>
 
             <div className="row">
+                {/* Selección de método de envío */}
                 <div className="col-md-8">
                     <h4>Método de Envío</h4>
                     <form>
@@ -76,6 +83,7 @@ export function Envio() {
                     </form>
                 </div>
 
+                {/* Resumen de la compra */}
                 <div className="col-md-4">
                     <h4>Resumen ({resumen.reduce((acc, item) => acc + item.cantidad, 0)} Artículo{resumen.length > 1 ? 's' : ''})</h4>
                     <div className="border p-3 rounded">
@@ -88,6 +96,7 @@ export function Envio() {
                 </div>
             </div>
 
+            {/* Sección de pago con PayPal */}
             <div className="mt-4">
                 <h4>Pago</h4>
                 <PayPalButtons
@@ -110,6 +119,7 @@ export function Envio() {
                         });
                     }}
                     onApprove={(data, actions) => {
+                        // Cuando el pago es aprobado y capturado
                         return actions.order.capture().then((details) => {
                             Swal.fire({
                                 icon: 'success',
@@ -122,6 +132,7 @@ export function Envio() {
                         });
                     }}
                     onError={(err) => {
+                        // Si ocurre un error en el pago
                         console.error('Error en el pago:', err);
                         Swal.fire({
                             icon: 'error',
@@ -132,6 +143,7 @@ export function Envio() {
                 />
             </div>
 
+            {/* Botón para regresar a la información del cliente */}
             <div className="mt-4 d-flex gap-3">
                 <button
                     className="btn btn-secondary"

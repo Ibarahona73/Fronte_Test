@@ -6,29 +6,33 @@ import { toast } from "react-hot-toast";
 import { compressImage } from "../imageUtils";
 
 export function Edicion() {
-    const { id } = useParams();
+    const { id } = useParams(); // Obtiene el ID del producto desde la URL
     const navigate = useNavigate();
+    // Inicializa react-hook-form para manejar el formulario
     const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
-    const [previewImages, setPreviewImages] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [previewImages, setPreviewImages] = useState([]); // Estado para la imagen de vista previa
+    const [isSubmitting, setIsSubmitting] = useState(false); // Estado para evitar doble envío
 
+    // Carga los datos del producto al montar o cuando cambia el id
     useEffect(() => {
         async function fetchProducto() {
             try {
-                const producto = await getProducto(id);
-                reset(producto);
+                const producto = await getProducto(id); // Obtiene el producto de la API
+                reset(producto); // Llena el formulario con los datos del producto
                 if (producto.imagen_url) {
+                    // Si hay imagen, la muestra en la vista previa
                     setPreviewImages([{ url: producto.imagen_url, name: "Imagen actual" }]);
                 }
             } catch (error) {
                 console.error("Error al cargar el producto:", error);
                 toast.error("Error al cargar el producto");
-                navigate("/inventario");
+                navigate("/inventario"); // Redirige si hay error
             }
         }
         fetchProducto();
-    }, [id, reset, navigate]); // Asegúrate de que las dependencias sean correctas
+    }, [id, reset, navigate]); // Dependencias correctas
 
+    // Maneja el cambio de imagen seleccionada
     const handleImageChange = async (e) => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
@@ -44,6 +48,7 @@ export function Edicion() {
                 continue;
             }
             try {
+                // Comprime la imagen antes de mostrarla
                 const compressedFile = await compressImage(file, 1024, 0.7);
                 newImagePreviews.push({
                     name: file.name,
@@ -60,11 +65,13 @@ export function Edicion() {
         }
     };
 
+    // Elimina la imagen de la vista previa
     const removeImage = () => {
         setPreviewImages([]);
         setValue("imagenes", []);
     };
 
+    // Maneja la eliminación del producto
     const handleDelete = async () => {
         if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
             try {
@@ -78,11 +85,13 @@ export function Edicion() {
         }
     };
 
+    // Maneja el envío del formulario de edición
     const onSubmit = async (formData) => {
         if (isSubmitting) return;
         setIsSubmitting(true);
 
         try {
+            // Construye el objeto del producto a actualizar
             const productData = {
                 nombre: formData.nombre.trim(),
                 precio: parseFloat(formData.precio),
@@ -93,11 +102,12 @@ export function Edicion() {
                 colores: formData.colores,
             };
 
+            // Si hay una nueva imagen, la agrega al objeto
             if (previewImages.length > 0 && previewImages[0].fileObject) {
                 productData.imagen = previewImages[0].fileObject;
             }
 
-            await updateProducto(id, productData);
+            await updateProducto(id, productData); // Actualiza el producto en la API
             toast.success("Producto actualizado con éxito");
             navigate("/inventario");
         } catch (error) {
@@ -153,6 +163,7 @@ export function Edicion() {
                                             className="img-thumbnail w-100 h-100 object-fit-cover"
                                             style={{ objectFit: 'contain' }}
                                         />
+                                        {/* Botón para eliminar la imagen */}
                                         <button 
                                             type="button"
                                             className="position-absolute top-0 end-0 btn btn-sm btn-danger rounded-circle m-1"
@@ -169,6 +180,7 @@ export function Edicion() {
 
                     {/* Campos del formulario */}
                     <div className="row g-3 mb-4">
+                        {/* Nombre */}
                         <div className="col-md-6">
                             <label htmlFor="nombre" className="form-label fw-medium">Nombre del Producto *</label>
                             <input
@@ -181,6 +193,7 @@ export function Edicion() {
                             {errors.nombre && <div className="invalid-feedback">{errors.nombre.message}</div>}
                         </div>
 
+                        {/* Precio */}
                         <div className="col-md-6">
                             <label htmlFor="precio" className="form-label fw-medium">Precio *</label>
                             <input
@@ -207,6 +220,7 @@ export function Edicion() {
                             )}
                         </div>
 
+                        {/* Cantidad en Stock */}
                         <div className="col-md-6">
                             <label htmlFor="cantidad_en_stock" className="form-label fw-medium">Cantidad en Stock *</label>
                             <input
@@ -219,6 +233,7 @@ export function Edicion() {
                             {errors.cantidad_en_stock && <div className="invalid-feedback">{errors.cantidad_en_stock.message}</div>}
                         </div>
 
+                        {/* Categoría */}
                         <div className="col-md-6">
                             <label htmlFor="categoria" className="form-label fw-medium">Categoría *</label>
                             <select
@@ -234,6 +249,7 @@ export function Edicion() {
                             {errors.categoria && <div className="invalid-feedback">{errors.categoria.message}</div>}
                         </div>
 
+                        {/* Color */}
                         <div className="col-md-6">
                             <label htmlFor="colores" className="form-label fw-medium">Color *</label>
                             <input
@@ -246,6 +262,7 @@ export function Edicion() {
                             {errors.colores && <div className="invalid-feedback">{errors.colores.message}</div>}
                         </div>
 
+                        {/* Tamaño */}
                         <div className="col-md-6">
                             <label htmlFor="tamaño" className="form-label fw-medium">Tamaño *</label>
                             <select
@@ -267,6 +284,7 @@ export function Edicion() {
 
                     {/* Botones de acción */}
                     <div className="d-flex justify-content-end gap-3 pt-4 border-top">
+                        {/* Botón para eliminar el producto */}
                         <button
                             type="button"
                             className="btn btn-outline-danger px-4"
@@ -275,6 +293,7 @@ export function Edicion() {
                         >
                             Eliminar Producto
                         </button>
+                        {/* Botón para cancelar y volver */}
                         <button 
                             type="button"
                             className="btn btn-outline-secondary px-4"
@@ -283,6 +302,7 @@ export function Edicion() {
                         >
                             Cancelar
                         </button>
+                        {/* Botón para guardar cambios */}
                         <button 
                             type="submit"
                             className="btn btn-primary px-4"

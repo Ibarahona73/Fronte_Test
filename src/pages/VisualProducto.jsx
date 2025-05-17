@@ -6,17 +6,18 @@ import { useCart } from '../components/CartContext';
 import Swal from 'sweetalert2';
 
 export function VisualProducto() {
-    const { id } = useParams();
+    const { id } = useParams(); // Obtiene el ID del producto desde la URL
     const navigate = useNavigate();
-    const { addToCart, cart } = useCart();
-    const [producto, setProducto] = useState(null);
-    const [productosRelacionados, setProductosRelacionados] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [cantidad, setCantidad] = useState(1);
-    const [showCartPopup, setShowCartPopup] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { addToCart, cart } = useCart(); // Obtiene funciones y datos del carrito
+    const [producto, setProducto] = useState(null); // Estado para el producto actual
+    const [productosRelacionados, setProductosRelacionados] = useState([]); // Estado para productos relacionados
+    const [loading, setLoading] = useState(true); // Estado de carga
+    const [error, setError] = useState(null); // Estado de error
+    const [cantidad, setCantidad] = useState(1); // Estado para la cantidad a agregar al carrito
+    const [showCartPopup, setShowCartPopup] = useState(false); // Estado para mostrar el popup del carrito
+    const [isSubmitting, setIsSubmitting] = useState(false); // Estado para evitar múltiples envíos
 
+    // Carga el producto al montar el componente o cuando cambia el id
     useEffect(() => {
         async function fetchProducto() {
             try {
@@ -33,6 +34,7 @@ export function VisualProducto() {
         fetchProducto();
     }, [id]); // Solo depende del ID del producto
 
+    // Carga productos relacionados 
     useEffect(() => {
         async function fetchProductosRelacionados() {
             try {
@@ -46,18 +48,22 @@ export function VisualProducto() {
         fetchProductosRelacionados();
     }, [id]); // Asegúrate de que las dependencias sean correctas
 
+    // Muestra mensajes de carga o error si corresponde
     if (loading) return <div>Cargando producto...</div>;
     if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
+    // Maneja el cambio de cantidad en el input
     const handleCantidadChange = (e) => {
         const value = Math.min(Math.max(1, parseInt(e.target.value, 10)), producto.cantidad_en_stock);
         setCantidad(value);
     };
 
+    // Maneja la acción de añadir al carrito
     const handleAddToCart = async () => {
         if (isSubmitting) return; // Evita múltiples ejecuciones
         setIsSubmitting(true);
 
+        // Verifica si hay suficiente stock
         if (cantidad > producto.cantidad_en_stock) {
             Swal.fire({
                 icon: 'warning',
@@ -81,6 +87,7 @@ export function VisualProducto() {
             // Añadir al carrito
             addToCart(producto, cantidad);
 
+            // Mostrar popup de éxito
             setShowCartPopup(true);
             setTimeout(() => setShowCartPopup(false), 4000); // Ocultar el popup después de 4 segundos
         } catch (error) {
@@ -97,7 +104,9 @@ export function VisualProducto() {
 
     return (
         <div>
+            {/* Sección principal del producto */}
             <div style={{ padding: '20px', display: 'flex', gap: '20px' }}>
+                {/* Imagen del producto */}
                 <div style={{ flex: 1 }}>
                     <img
                         src={producto.imagen_base64 ? `data:image/jpeg;base64,${producto.imagen_base64}` : 'https://via.placeholder.com/300'}
@@ -105,6 +114,7 @@ export function VisualProducto() {
                         style={{ width: '100%', borderRadius: '5px' }}
                     />
                 </div>
+                {/* Detalles del producto y acciones */}
                 <div style={{ flex: 1, border: '1px solid #ddd', padding: '20px', borderRadius: '5px' }}>
                     <h1>{producto.nombre}</h1>
                     <h2 style={{ color: '#3498db' }}>
@@ -112,6 +122,7 @@ export function VisualProducto() {
                     </h2>
                     <p>{producto.descripcion || 'No hay descripción disponible.'}</p>
                     <p><strong>Stock disponible:</strong> {producto.cantidad_en_stock > 0 ? producto.cantidad_en_stock : 'Agotado'}</p>
+                    {/* Input para seleccionar cantidad */}
                     <input
                         type="number"
                         value={cantidad}
@@ -126,6 +137,7 @@ export function VisualProducto() {
                         }}
                         disabled={producto.cantidad_en_stock === 0}
                     />
+                    {/* Botón para añadir al carrito */}
                     <button
                         onClick={handleAddToCart}
                         style={{

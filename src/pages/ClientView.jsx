@@ -8,10 +8,10 @@ import { useCart } from '../components/CartContext';
 
 export function ClientView() {
     const { cart } = useCart(); // Obtener el carrito desde el contexto
-    const [productos, setProductos] = useState([]);
-    const [filteredProductos, setFilteredProductos] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [productos, setProductos] = useState([]); // Todos los productos
+    const [filteredProductos, setFilteredProductos] = useState([]); // Productos filtrados
+    const [loading, setLoading] = useState(true); // Estado de carga
+    const [error, setError] = useState(null); // Estado de error
     const [filters, setFilters] = useState({
         categoria: '',
         tamaño: '',
@@ -27,6 +27,7 @@ export function ClientView() {
         'XXL': 'XXL'
     };
 
+    // Cargar productos al montar o cuando cambia el carrito
     useEffect(() => {
         let isMounted = true;
 
@@ -42,7 +43,7 @@ export function ClientView() {
 
                     return {
                         ...producto,
-                        tamaño: sizeMap[producto.tamaño] || producto.tamaño,
+                        tamaño: sizeMap[producto.tamaño] || producto.tamaño, // Normaliza el tamaño
                         imagen: producto.imagen_base64 
                             ? `data:image/jpeg;base64,${producto.imagen_base64}`
                             : null,
@@ -70,7 +71,7 @@ export function ClientView() {
     const uniqueCategories = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
     const uniqueSizes = [...new Set(productos.map(p => p.tamaño).filter(Boolean))];
 
-    // Aplicar filtros
+    // Aplicar filtros cada vez que cambian los filtros o los productos
     useEffect(() => {
         let result = [...productos];
 
@@ -89,6 +90,7 @@ export function ClientView() {
         setFilteredProductos(result);
     }, [filters, productos]);
 
+    // Mostrar mensaje de carga
     if (loading) return (
         <div>            
             <div style={{ 
@@ -101,6 +103,7 @@ export function ClientView() {
         </div>
     );
 
+    // Mostrar mensaje de error
     if (error) return (
         <div>            
             <div style={{ 
@@ -313,6 +316,7 @@ export function ClientView() {
                     </Link>
                 ))}
 
+                {/* Mensaje si no hay productos */}
                 {filteredProductos.length === 0 && (
                     <div style={{ 
                         textAlign: 'center',

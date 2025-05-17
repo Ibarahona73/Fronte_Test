@@ -2,10 +2,12 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from './CartContext';
 
+// Componente de barra de navegación principal
 export function Navigation() {
-    const { cart } = useCart();
+    const { cart } = useCart(); // Obtiene el carrito desde el contexto global
     const location = useLocation(); // Hook para obtener la ruta actual
 
+    // Calcula el total de productos en el carrito
     const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
     return (
@@ -14,7 +16,7 @@ export function Navigation() {
                 {/* Botón de inicio a la izquierda */}
                 <Link className="navbar-brand text-white" to="/">Inicio</Link>
 
-                {/* Mostrar "Crear Prod" solo en /inventario */}
+                {/* Mostrar "Crear Prod" solo si la ruta es /inventario */}
                 {location.pathname === '/inventario' && (
                     <Link className="navbar-brand text-white" to="/crearprod">Crear Prod</Link>
                 )}
@@ -23,6 +25,7 @@ export function Navigation() {
                     {/* Ícono del carrito a la derecha */}
                     <Link className="nav-link text-white" to="/carrito" style={{ position: 'relative' }}>
                         <i className="bi bi-cart" style={{ fontSize: '1.8rem' }}></i>
+                        {/* Muestra la cantidad de productos si hay al menos uno */}
                         {totalItems > 0 && (
                             <span style={{
                                 position: 'absolute',
@@ -40,14 +43,16 @@ export function Navigation() {
                     </Link>
                 </div>
             </div>
+            {/* Ícono de usuario a la derecha */}
             <div className="ms-auto d-flex align-items-center gap-3">                                    
-                    <Link to="/login" className="nav-link">
+                <Link to="/login" className="nav-link">
                     <i className="bi bi-person-circle" 
-                    style={{ 
-                        fontSize: '1.8rem',
-                        color:'white',
-                        padding: '15px'
-                    }}></i>
+                        style={{ 
+                            fontSize: '1.8rem',
+                            color:'white',
+                            padding: '15px'
+                        }}>
+                    </i>
                 </Link>
             </div>
         </nav>

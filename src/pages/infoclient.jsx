@@ -24,13 +24,16 @@ export function InfoClient() {
         },
     } = location.state || {};
 
+    // Estado local para los datos del formulario
     const [formData, setFormData] = useState(initialFormData);
 
+    // Maneja los cambios en los campos del formulario
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
+    // Maneja el envío del formulario
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -52,6 +55,7 @@ export function InfoClient() {
             <form onSubmit={handleSubmit} className="row mt-4">
                 {/* Información de Cliente */}
                 <div className="col-md-8">
+                    {/* Campo de correo electrónico */}
                     <div className="mb-3">
                         <label htmlFor="email" className="form-label">Correo Electrónico</label>
                         <input
@@ -68,6 +72,7 @@ export function InfoClient() {
                     {/* Datos de Envío */}
                     <h4>Datos de Envío</h4>
                     <div className="row">
+                        {/* Primer Nombre */}
                         <div className="col-md-6 mb-3">
                             <label htmlFor="firstName" className="form-label">Primer Nombre</label>
                             <input
@@ -80,6 +85,7 @@ export function InfoClient() {
                                 required
                             />
                         </div>
+                        {/* Apellidos */}
                         <div className="col-md-6 mb-3">
                             <label htmlFor="lastName" className="form-label">Apellidos</label>
                             <input
@@ -92,6 +98,7 @@ export function InfoClient() {
                                 required
                             />
                         </div>
+                        {/* Compañía (opcional) */}
                         <div className="col-md-6 mb-3">
                             <label htmlFor="company" className="form-label">Compañía (opcional)</label>
                             <input
@@ -103,6 +110,7 @@ export function InfoClient() {
                                 onChange={handleInputChange}
                             />
                         </div>
+                        {/* Dirección */}
                         <div className="col-md-6 mb-3">
                             <label htmlFor="address" className="form-label">Dirección</label>
                             <input
@@ -115,6 +123,7 @@ export function InfoClient() {
                                 required
                             />
                         </div>
+                        {/* Apartamento (opcional) */}
                         <div className="col-md-6 mb-3">
                             <label htmlFor="apartment" className="form-label">Apt. (Opcional)</label>
                             <input
@@ -126,6 +135,7 @@ export function InfoClient() {
                                 onChange={handleInputChange}
                             />
                         </div>
+                        {/* País */}
                         <div className="col-md-6 mb-3">
                             <label htmlFor="country" className="form-label">País</label>
                             <input
@@ -138,6 +148,7 @@ export function InfoClient() {
                                 required
                             />
                         </div>
+                        {/* Estado */}
                         <div className="col-md-4 mb-3">
                             <label htmlFor="state" className="form-label">Estado</label>
                             <input
@@ -150,6 +161,7 @@ export function InfoClient() {
                                 required
                             />
                         </div>
+                        {/* Código postal */}
                         <div className="col-md-4 mb-3">
                             <label htmlFor="zip" className="form-label">Zip</label>
                             <input
@@ -163,10 +175,11 @@ export function InfoClient() {
                             />
                         </div>
                     </div>
+                    {/* Botón para continuar */}
                     <button type="submit" className="btn btn-primary">Siguiente</button>
                 </div>
 
-                {/* Resumen */}
+                {/* Resumen del pedido */}
                 <div className="col-md-4">
                     <h4>Resumen ({resumen.reduce((acc, item) => acc + item.cantidad, 0)} Artículo{resumen.length > 1 ? 's' : ''})</h4>
                     <div className="border p-3 rounded">
@@ -176,6 +189,7 @@ export function InfoClient() {
                         <hr />
                         <h5><strong>Total:</strong> ${total.toFixed(2)}</h5>
                     </div>
+                    {/* Detalles de los productos */}
                     <h5>Detalles:</h5>
                     <ul>
                         {resumen.map((item, index) => (
@@ -184,6 +198,7 @@ export function InfoClient() {
                             </li>
                         ))}
                     </ul>
+                    {/* Botón para regresar al carrito */}
                     <button
                         type="button"
                         className="btn btn-secondary mt-3"

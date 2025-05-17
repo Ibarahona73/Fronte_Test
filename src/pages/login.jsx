@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 
+// Componente de Login
 export function Login() {
+  // Estados para usuario y contraseña
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
 
+  // Maneja el envío del formulario de login
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Aquí va la lógica de autenticación
+    // Aquí va la lógica de autenticación (simulada con SweetAlert2)
     Swal.fire({
-        icon: 'success',
-        title: '¡Bienvenido!',
-        text: 'Login simulado',
-        });
+      icon: 'success',
+      title: '¡Bienvenido!',
+      text: 'Login simulado',
+    });
   };
 
   return (
@@ -31,18 +34,21 @@ export function Login() {
         alignItems: 'center',
         justifyContent: 'center'
       }}>
+        {/* Logo de UTH Florida */}
         <img
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTq2pwE1N4DauKGIcLHrcj30esYCiIxXkJHaA&s"
           alt="UTH Florida"
           style={{ width: 120, marginBottom: 20 }}
         />
+        {/* Nombre de la universidad */}
         <h1 style={{ fontWeight: 'bold', marginBottom: 10 }}>UTH FLORIDA</h1>
+        {/* Slogan */}
         <p style={{ textAlign: 'center', maxWidth: 200 }}>
           Un clic a distancia
         </p>
       </div>
 
-      {/* Lado Derecho: Login */}
+      {/* Lado Derecho: Formulario de Login */}
       <div style={{
         flex: 1,
         display: 'flex',
@@ -60,9 +66,11 @@ export function Login() {
             background: '#fff'
           }}
         >
+          {/* Icono de usuario */}
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <span style={{ fontSize: 48 }}>👤</span>
           </div>
+          {/* Input de usuario/correo */}
           <input
             type="text"
             placeholder="Usuario o Correo"
@@ -77,6 +85,7 @@ export function Login() {
             }}
             required
           />
+          {/* Input de contraseña */}
           <input
             type="password"
             placeholder="Contraseña"
@@ -91,6 +100,7 @@ export function Login() {
             }}
             required
           />
+          {/* Botón de ingresar */}
           <div style={{ textAlign: 'center', marginBottom: 15 }}>
             <button
               type="submit"
@@ -106,6 +116,7 @@ export function Login() {
               Ingresar
             </button>
           </div>
+          {/* Enlace para recuperar contraseña */}
           <div style={{ textAlign: 'center' }}>
             <a href="#" style={{ color: '#1976d2', fontSize: 14 }}>
               ¿Olvidaste tu contraseña?
