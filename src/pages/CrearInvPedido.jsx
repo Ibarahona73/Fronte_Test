@@ -45,11 +45,20 @@ export function CrearInvPedido() {
                 continue;
             }
             try {
-                const base64String = await convertToBase64(file);
+                // Comprime la imagen antes de mostrarla
+                // const compressedFile = await compressImage(file, 1024, 0.7);
+                // newImagePreviews.push({
+                //     name: file.name,
+                //     url: URL.createObjectURL(compressedFile),
+                //     fileObject: compressedFile
+                // });
+                const compressedFile = await compressImage(file, 1024, 0.7);
+                //const base64String = await convertToBase64(file);
                 newImagePreviews.push({
                     name: file.name,
-                    url: URL.createObjectURL(file),
-                    base64: base64String,
+                    url: URL.createObjectURL(compressedFile),
+                    //base64: base64String,
+                    fileObject: compressedFile
                 });
             } catch (error) {
                 toast.error(`Error al procesar ${file.name}: ${error.message}`);
@@ -98,7 +107,8 @@ export function CrearInvPedido() {
                 categoria: formData.categoria,
                 tamaño: formData.tamaño,
                 colores: formData.colores,
-                imagen_base64: previewImages[0].base64, // Solo la primera imagen
+                imagen: previewImages[0].fileObject
+                
             };
 
             // Llama a la API para crear el producto

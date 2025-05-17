@@ -14,8 +14,7 @@ export function Carrito() {
         try {
             const difference = newQuantity - oldQuantity;
 
-            // Actualiza la cantidad en el carrito
-            await updateCartQuantity(id, newQuantity);
+            
 
             if (difference > 0) {
                 // Si se aumenta la cantidad, reduce el stock en la base de datos
@@ -24,6 +23,9 @@ export function Carrito() {
                 // Si se reduce la cantidad, aumenta el stock en la base de datos
                 await addProductoStock(id, Math.abs(difference));
             }
+
+            // Actualiza la cantidad en el carrito
+            await updateCartQuantity(id, newQuantity);
         } catch (error) {
             // Muestra error si falla la actualización
             console.error('Error al actualizar el stock del producto:', error);
