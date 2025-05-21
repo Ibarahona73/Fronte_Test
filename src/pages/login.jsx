@@ -151,7 +151,7 @@ export async function loginUser(email, password) {
         localStorage.setItem('token', response.data.token);
         // Puedes guardar también el usuario si lo necesitas
         localStorage.setItem('usuario', JSON.stringify(response.data.email));
-        return { success: true, data: response.data };
+        return { success: true, data: response.data }; 
     } catch (error) {
         return { success: false, error: error.response?.data?.error || 'Error de autenticación' };
     }
