@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { VisualProducto } from './pages/VisualProducto';
 import { CrearInvPedido } from './pages/CrearInvPedido';
-import { CartProvider } from './components/CartContext'; // Importa CartProvider
+import { CartProvider } from './components/CartContext'; 
 import { Navigation } from './components/Navigation';
 import { EntradaStock } from './pages/EntradaStock';
 import { SalidaStock } from './pages/SalidaStock';
@@ -17,6 +17,9 @@ import { Envio } from './pages/Envio';
 import './App.css';
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import Login from './pages/login';
+import HistorialCompras from './pages/historialcompras';
+import {DataCliente} from './pages/DataCliente'
+
 
 function App() {
   return (
@@ -32,12 +35,14 @@ function App() {
             <Route path="/crearprod" element={<CrearInvPedido />} />
             <Route path="*" element={<Navigate to="/" replace />} />
             <Route path="/InfoClient/" element={<InfoClient />} />
+            <Route path="/history" element={<HistorialCompras />} />
             <Route path="/out/:id" element={<SalidaStock />} />
             <Route path="/editar/:id" element={<Edicion />} />
             <Route path="/inventario" element={<Listado />} />
             <Route path="/carrito" element={<Carrito />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />            
             <Route path="/envio" element={<Envio />} />
+            <Route path="/datacliente" element={<DataCliente />} />
             <Route path="/" element={<ClientView />} />
           </Routes>
         </BrowserRouter>

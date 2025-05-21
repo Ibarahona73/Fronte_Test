@@ -18,7 +18,7 @@ export function Navigation() {
 
                 {/* Mostrar "Crear Prod" solo si la ruta es /inventario */}
                 {location.pathname === '/inventario' && (
-                    <Link className="navbar-brand text-white" to="/crearprod">Crear Prod</Link>
+                    <Link className="navbar-brand text-white" to="/crearprod">Crear Producto</Link>
                 )}
 
                 <div className="d-flex ms-auto">
@@ -45,7 +45,7 @@ export function Navigation() {
             </div>
             {/* Ícono de usuario a la derecha */}
             <div className="ms-auto d-flex align-items-center gap-3">                                    
-                <Link to="/login" className="nav-link">
+                <Link to="/DataCliente" className="nav-link">
                     <i className="bi bi-person-circle" 
                         style={{ 
                             fontSize: '1.8rem',

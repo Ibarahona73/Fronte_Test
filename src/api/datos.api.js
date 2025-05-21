@@ -78,47 +78,8 @@ export const updateProducto = async (id, data) => {
         });
     }
 
-//Pedidos
-
-export const createPedido = async (formData) => {
-    try {
-        console.log("Datos enviados al backend:", formData);
-        const response = await api.post('/api/v1/pedidos/', formData, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        return response.data;
-     }  catch (error) {
-      if (error.response) {
-        console.error('Error response data:', error.response.data);
-      }
-      throw error;
-    }
-  }
-
-export const getPedidos = () => {
-  return api.get('/api/v1/pedidos/')  // Asegúrate de que esta ruta coincida con tu backend
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error fetching tareas:', error);
-      throw error; // Propaga el error para manejarlo en el componente
-    });
-  }
- 
-    //quitar productos del stock
-    export async function updateProductoStock(id, cantidad) {
-      try {
-          const response = await api.put(`/api/v1/productos/${id}/cantidad_en_stock/${cantidad}/`);
-          return response.data;
-      } catch (error) {
-          console.error('Error al actualizar el stock del producto:', error);
-          throw error;
-      }
-  }
-
-// Añadir productos al stock
-  export async function addProductoStock(id, cantidad) {
+//quitar productos del stock
+export async function updateProductoStock(id, cantidad) {
     try {
         const response = await api.put(`/api/v1/productos/${id}/cantidad_en_stock/${cantidad}/`);
         return response.data;
@@ -128,4 +89,84 @@ export const getPedidos = () => {
     }
 }
 
-  
+// Añadir productos al stock
+export async function addProductoStock(id, cantidad) {
+  try {
+      const response = await api.put(`/api/v1/productos/${id}/cantidad_en_stock/${cantidad}/`);
+      return response.data;
+  } catch (error) {
+      console.error('Error al actualizar el stock del producto:', error);
+      throw error;
+  }
+}
+
+
+
+
+//Pedidos
+
+export const createPedido = async (formData) => {
+    try {
+        console.log("Sending to backend:", formData);
+        const response = await api.post('/api/v1/pedidos/', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            console.error('Full error response:', {
+                status: error.response.status,
+                data: error.response.data,
+                headers: error.response.headers
+            });
+        } else {
+            console.error('Error without response:', error);
+        }
+        throw error;
+    }
+};
+
+export const getPedidos = () => {
+    return api.get('/api/v1/pedidos/')
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error fetching pedidos:', error);
+            throw error;
+        });
+};
+
+export const getPedido = (id) => {
+    return api.get(`/api/v1/pedidos/${id}/`)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error fetching pedido:', error);
+            throw error;
+        });
+};
+
+export const updatePedido = async (id, data) => {
+    try {
+        const response = await api.put(`/api/v1/pedidos/${id}/`, data, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating pedido:', error);
+        throw error;
+    }
+};
+
+export const deletePedido = (id) => {
+    return api.delete(`/api/v1/pedidos/${id}/`)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error deleting pedido:', error);
+            throw error;
+        });
+};
+
+    

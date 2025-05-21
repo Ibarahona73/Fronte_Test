@@ -89,7 +89,7 @@ export function SalidaStock() {
                 {/* Imagen del producto */}
                 <div className="col-md-6">
                     <img
-                        src={producto.imagen_base64 ? `data:image/jpeg;base64,${producto.imagen_base64}` : 'https://via.placeholder.com/300'}
+                        src={producto.image ? `data:image/jpeg;base64,${producto.image}` : 'https://via.placeholder.com/300'}
                         alt={producto.nombre}
                         className="img-fluid rounded"
                     />

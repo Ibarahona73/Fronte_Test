@@ -35,9 +35,13 @@ export function CartProvider({ children }) {
 
     // Actualizar la cantidad de un producto en el carrito
     const updateCartQuantity = (id, quantity) => {
+        // Recorre cada producto del carrito
         setCart((prevCart) =>
             prevCart.map((item) =>
-                item.id === id ? { ...item, quantity: item.quantity + Math.max(1, quantity) } : item
+                // Si el id coincide, actualiza la cantidad directamente
+                item.id === id ? { ...item, quantity: quantity }
+                // Si no coincide, deja el producto igual
+                : item
             )
         );
     };

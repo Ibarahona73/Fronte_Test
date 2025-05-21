@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 import { useLocation, useNavigate } from 'react-router-dom';
+import paisesData from '../components/paisesData.json';
+import FormDir from '../components/Formdir';
 
 export function InfoClient() {
     const location = useLocation();
@@ -17,15 +21,52 @@ export function InfoClient() {
             lastName: '',
             company: '',
             address: '',
-            apartment: '',
+            city: '',
             country: '',
             state: '',
             zip: '',
+            phone: '',
         },
     } = location.state || {};
 
     // Estado local para los datos del formulario
     const [formData, setFormData] = useState(initialFormData);
+    const [phoneValue, setPhoneValue] = useState(formData.phone || '');
+    const [regiones, setRegiones] = useState([]);
+    const [ciudades, setCiudades] = useState([]);
+
+    // Determinar el nombre correcto para la región según el país
+    const getRegionKey = (country) => {
+        if (!country) return 'departamentos';
+        if (country === 'España') return 'comunidades_autonomas';
+        if (country === 'Estados Unidos' || country === 'México') return 'estados';
+        return 'departamentos';
+    };
+
+    // Cargar regiones cuando cambia el país
+    useEffect(() => {
+        if (formData.country && paisesData[formData.country]) {
+            const regionKey = getRegionKey(formData.country);
+            setRegiones(paisesData[formData.country][regionKey] || []);
+            // Resetear estado y ciudad cuando cambia el país
+            setFormData(prev => ({ ...prev, state: '', city: '' }));
+            setCiudades([]);
+        } else {
+            setRegiones([]);
+            setCiudades([]);
+        }
+    }, [formData.country]);
+
+    // Cargar ciudades cuando cambia el estado/departamento
+    useEffect(() => {
+        if (formData.country && formData.state && paisesData[formData.country]?.ciudades[formData.state]) {
+            setCiudades(paisesData[formData.country].ciudades[formData.state]);
+            // Resetear ciudad cuando cambia el estado
+            setFormData(prev => ({ ...prev, city: '' }));
+        } else {
+            setCiudades([]);
+        }
+    }, [formData.state]);
 
     // Maneja los cambios en los campos del formulario
     const handleInputChange = (e) => {
@@ -33,9 +74,29 @@ export function InfoClient() {
         setFormData({ ...formData, [name]: value });
     };
 
+    // Maneja el cambio del número de teléfono
+    const handlePhoneChange = (value) => {
+        setPhoneValue(value);
+        setFormData({ ...formData, phone: value });
+    };
+
     // Maneja el envío del formulario
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        // Validaciones
+        if (!phoneValue) {
+            alert('Por favor ingrese un número de teléfono válido');
+            return;
+        }
+        if (!formData.state) {
+            alert('Por favor seleccione un estado/departamento');
+            return;
+        }
+        if (!formData.city) {
+            alert('Por favor seleccione una ciudad');
+            return;
+        }
 
         // Redirige a la página de envío con los datos necesarios
         navigate('/envio', {
@@ -44,170 +105,45 @@ export function InfoClient() {
                 isv,
                 total,
                 resumen,
-                formData,
+                formData: {
+                    ...formData,
+                    phone: phoneValue
+                },
             },
         });
+    };
+
+    // Obtener el label adecuado para la región según el país
+    const getRegionLabel = () => {
+        if (!formData.country) return 'Estado/Departamento';
+        if (formData.country === 'España') return 'Comunidad Autónoma';
+        if (formData.country === 'Estados Unidos' || formData.country === 'México') return 'Estado';
+        return 'Departamento';
     };
 
     return (
         <div className="container mt-4">
             <h2>Información de Cliente</h2>
-            <form onSubmit={handleSubmit} className="row mt-4">
-                {/* Información de Cliente */}
-                <div className="col-md-8">
-                    {/* Campo de correo electrónico */}
-                    <div className="mb-3">
-                        <label htmlFor="email" className="form-label">Correo Electrónico</label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            className="form-control"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-
-                    {/* Datos de Envío */}
-                    <h4>Datos de Envío</h4>
-                    <div className="row">
-                        {/* Primer Nombre */}
-                        <div className="col-md-6 mb-3">
-                            <label htmlFor="firstName" className="form-label">Primer Nombre</label>
-                            <input
-                                type="text"
-                                id="firstName"
-                                name="firstName"
-                                className="form-control"
-                                value={formData.firstName}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        {/* Apellidos */}
-                        <div className="col-md-6 mb-3">
-                            <label htmlFor="lastName" className="form-label">Apellidos</label>
-                            <input
-                                type="text"
-                                id="lastName"
-                                name="lastName"
-                                className="form-control"
-                                value={formData.lastName}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        {/* Compañía (opcional) */}
-                        <div className="col-md-6 mb-3">
-                            <label htmlFor="company" className="form-label">Compañía (opcional)</label>
-                            <input
-                                type="text"
-                                id="company"
-                                name="company"
-                                className="form-control"
-                                value={formData.company}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-                        {/* Dirección */}
-                        <div className="col-md-6 mb-3">
-                            <label htmlFor="address" className="form-label">Dirección</label>
-                            <input
-                                type="text"
-                                id="address"
-                                name="address"
-                                className="form-control"
-                                value={formData.address}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        {/* Apartamento (opcional) */}
-                        <div className="col-md-6 mb-3">
-                            <label htmlFor="apartment" className="form-label">Apt. (Opcional)</label>
-                            <input
-                                type="text"
-                                id="apartment"
-                                name="apartment"
-                                className="form-control"
-                                value={formData.apartment}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-                        {/* País */}
-                        <div className="col-md-6 mb-3">
-                            <label htmlFor="country" className="form-label">País</label>
-                            <input
-                                type="text"
-                                id="country"
-                                name="country"
-                                className="form-control"
-                                value={formData.country}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        {/* Estado */}
-                        <div className="col-md-4 mb-3">
-                            <label htmlFor="state" className="form-label">Estado</label>
-                            <input
-                                type="text"
-                                id="state"
-                                name="state"
-                                className="form-control"
-                                value={formData.state}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        {/* Código postal */}
-                        <div className="col-md-4 mb-3">
-                            <label htmlFor="zip" className="form-label">Zip</label>
-                            <input
-                                type="text"
-                                id="zip"
-                                name="zip"
-                                className="form-control"
-                                value={formData.zip}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                    </div>
-                    {/* Botón para continuar */}
-                    <button type="submit" className="btn btn-primary">Siguiente</button>
-                </div>
-
-                {/* Resumen del pedido */}
-                <div className="col-md-4">
-                    <h4>Resumen ({resumen.reduce((acc, item) => acc + item.cantidad, 0)} Artículo{resumen.length > 1 ? 's' : ''})</h4>
-                    <div className="border p-3 rounded">
-                        <p><strong>Subtotal:</strong> ${subtotal.toFixed(2)}</p>
-                        <p><strong>Envío:</strong> $0.00</p>
-                        <p><strong>Est. ISV:</strong> ${isv.toFixed(2)}</p>
-                        <hr />
-                        <h5><strong>Total:</strong> ${total.toFixed(2)}</h5>
-                    </div>
-                    {/* Detalles de los productos */}
-                    <h5>Detalles:</h5>
-                    <ul>
-                        {resumen.map((item, index) => (
-                            <li key={index}>
-                                {item.cantidad} x {item.nombre}
-                            </li>
-                        ))}
-                    </ul>
-                    {/* Botón para regresar al carrito */}
-                    <button
-                        type="button"
-                        className="btn btn-secondary mt-3"
-                        onClick={() => navigate('/carrito')}
-                    >
-                        &lt; Regresar al Carrito
-                    </button>
-                </div>
-            </form>
+            <br></br>
+            <h4>Datos de Envio</h4>
+            <FormDir
+                formData={formData}
+                onChange={setFormData}
+                onPhoneChange={handlePhoneChange}
+                onSubmit={handleSubmit}
+                showEmail={true}
+                showResumen={true}
+                resumen={resumen}
+                subtotal={subtotal}
+                isv={isv}
+                total={total}
+            />
+            <button
+                className="btn btn-secondary mt-2 col-md-2"
+                onClick={() => navigate('/carrito')}
+            >
+                &lt; Regresar
+            </button>
         </div>
     ); 
 }

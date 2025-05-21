@@ -1,0 +1,252 @@
+{
+    "Honduras": {
+      "departamentos": [
+        "Atlántida",
+        "Choluteca",
+        "Colón",
+        "Comayagua",
+        "Copán",
+        "Cortés",
+        "El Paraíso",
+        "Francisco Morazán",
+        "Gracias a Dios",
+        "Intibucá",
+        "Islas de la Bahía",
+        "La Paz",
+        "Lempira",
+        "Ocotepeque",
+        "Olancho",
+        "Santa Bárbara",
+        "Valle",
+        "Yoro"
+      ],
+      "ciudades": {
+        "Atlántida": ["La Ceiba", "Tela", "Jutiapa", "Arizona", "El Porvenir"],
+        "Choluteca": ["Choluteca", "Pespire", "San Lorenzo", "Marcovia", "Namasigüe"],
+        "Francisco Morazán": ["Tegucigalpa", "Comayagüela", "Valle de Ángeles", "Santa Lucía", "Ojojona"],
+        "Cortés": ["San Pedro Sula", "Choloma", "Puerto Cortés", "Villanueva", "La Lima"]
+      }
+    },
+    "Guatemala": {
+      "departamentos": [
+        "Alta Verapaz",
+        "Baja Verapaz",
+        "Chimaltenango",
+        "Chiquimula",
+        "El Progreso",
+        "Escuintla",
+        "Guatemala",
+        "Huehuetenango",
+        "Izabal",
+        "Jalapa",
+        "Jutiapa",
+        "Petén",
+        "Quetzaltenango",
+        "Quiché",
+        "Retalhuleu",
+        "Sacatepéquez",
+        "San Marcos",
+        "Santa Rosa",
+        "Sololá",
+        "Suchitepéquez",
+        "Totonicapán",
+        "Zacapa"
+      ],
+      "ciudades": {
+        "Guatemala": ["Ciudad de Guatemala", "Mixco", "Villa Nueva", "San Miguel Petapa", "Santa Catarina Pinula"],
+        "Quetzaltenango": ["Quetzaltenango", "Salcajá", "Olintepeque", "San Carlos Sija", "Zunil"],
+        "Escuintla": ["Escuintla", "Santa Lucía Cotzumalguapa", "La Gomera", "Tiquisate", "Puerto San José"]
+      }
+    },
+    "El Salvador": {
+      "departamentos": [
+        "Ahuachapán",
+        "Cabañas",
+        "Chalatenango",
+        "Cuscatlán",
+        "La Libertad",
+        "La Paz",
+        "La Unión",
+        "Morazán",
+        "San Miguel",
+        "San Salvador",
+        "San Vicente",
+        "Santa Ana",
+        "Sonsonate",
+        "Usulután"
+      ],
+      "ciudades": {
+        "San Salvador": ["San Salvador", "Soyapango", "Mejicanos", "Santa Tecla", "Delgado"],
+        "Santa Ana": ["Santa Ana", "Chalchuapa", "Metapán", "Coatepeque", "El Congo"],
+        "La Libertad": ["Santa Tecla", "Antiguo Cuscatlán", "Nuevo Cuscatlán", "Zaragoza", "Quezaltepeque"]
+      }
+    },
+    "Nicaragua": {
+      "departamentos": [
+        "Boaco",
+        "Carazo",
+        "Chinandega",
+        "Chontales",
+        "Estelí",
+        "Granada",
+        "Jinotega",
+        "León",
+        "Madriz",
+        "Managua",
+        "Masaya",
+        "Matagalpa",
+        "Nueva Segovia",
+        "Río San Juan",
+        "Rivas",
+        "Costa Caribe Norte",
+        "Costa Caribe Sur"
+      ],
+      "ciudades": {
+        "Managua": ["Managua", "Ciudad Sandino", "Tipitapa", "San Rafael del Sur", "El Crucero"],
+        "León": ["León", "La Paz Centro", "Nagarote", "El Jicaral", "Santa Rosa del Peñón"],
+        "Granada": ["Granada", "Nandaime", "Diriá", "Diriomo"]
+      }
+    },
+    "Costa Rica": {
+      "departamentos": [
+        "San José",
+        "Alajuela",
+        "Cartago",
+        "Heredia",
+        "Guanacaste",
+        "Puntarenas",
+        "Limón"
+      ],
+      "ciudades": {
+        "San José": ["San José", "Escazú", "Desamparados", "Curridabat", "Alajuelita"],
+        "Alajuela": ["Alajuela", "San Ramón", "Grecia", "Atenas", "Naranjo"],
+        "Limón": ["Limón", "Guápiles", "Siquirres", "Matina", "Guácimo"]
+      }
+    },
+    "Estados Unidos": {
+      "estados": [
+        "Alabama",
+        "Alaska",
+        "Arizona",
+        "Arkansas",
+        "California",
+        "Colorado",
+        "Connecticut",
+        "Delaware",
+        "Florida",
+        "Georgia",
+        "Hawaii",
+        "Idaho",
+        "Illinois",
+        "Indiana",
+        "Iowa",
+        "Kansas",
+        "Kentucky",
+        "Louisiana",
+        "Maine",
+        "Maryland",
+        "Massachusetts",
+        "Michigan",
+        "Minnesota",
+        "Mississippi",
+        "Missouri",
+        "Montana",
+        "Nebraska",
+        "Nevada",
+        "New Hampshire",
+        "New Jersey",
+        "New Mexico",
+        "New York",
+        "North Carolina",
+        "North Dakota",
+        "Ohio",
+        "Oklahoma",
+        "Oregon",
+        "Pennsylvania",
+        "Rhode Island",
+        "South Carolina",
+        "South Dakota",
+        "Tennessee",
+        "Texas",
+        "Utah",
+        "Vermont",
+        "Virginia",
+        "Washington",
+        "West Virginia",
+        "Wisconsin",
+        "Wyoming"
+      ],
+      "ciudades": {
+        "California": ["Los Angeles", "San Diego", "San Jose", "San Francisco", "Fresno"],
+        "Texas": ["Houston", "San Antonio", "Dallas", "Austin", "Fort Worth"],
+        "Florida": ["Miami", "Tampa", "Orlando", "Jacksonville", "Tallahassee"]
+      }
+    },
+    "México": {
+      "estados": [
+        "Aguascalientes",
+        "Baja California",
+        "Baja California Sur",
+        "Campeche",
+        "Chiapas",
+        "Chihuahua",
+        "Ciudad de México",
+        "Coahuila",
+        "Colima",
+        "Durango",
+        "Guanajuato",
+        "Guerrero",
+        "Hidalgo",
+        "Jalisco",
+        "México",
+        "Michoacán",
+        "Morelos",
+        "Nayarit",
+        "Nuevo León",
+        "Oaxaca",
+        "Puebla",
+        "Querétaro",
+        "Quintana Roo",
+        "San Luis Potosí",
+        "Sinaloa",
+        "Sonora",
+        "Tabasco",
+        "Tamaulipas",
+        "Tlaxcala",
+        "Veracruz",
+        "Yucatán",
+        "Zacatecas"
+      ],
+      "ciudades": {
+        "Ciudad de México": ["Ciudad de México", "Iztapalapa", "Gustavo A. Madero", "Álvaro Obregón", "Coyoacán"],
+        "Jalisco": ["Guadalajara", "Zapopan", "Tlaquepaque", "Tonalá", "Puerto Vallarta"],
+        "Nuevo León": ["Monterrey", "Guadalupe", "San Nicolás de los Garza", "San Pedro Garza García", "Santa Catarina"]
+      }
+    },
+    "España": {
+      "comunidades_autonomas": [
+        "Andalucía",
+        "Aragón",
+        "Asturias",
+        "Baleares",
+        "Canarias",
+        "Cantabria",
+        "Castilla-La Mancha",
+        "Castilla y León",
+        "Cataluña",
+        "Comunidad Valenciana",
+        "Extremadura",
+        "Galicia",
+        "La Rioja",
+        "Madrid",
+        "Murcia",
+        "Navarra",
+        "País Vasco"
+      ],
+      "ciudades": {
+        "Madrid": ["Madrid", "Alcalá de Henares", "Getafe", "Leganés", "Móstoles"],
+        "Cataluña": ["Barcelona", "Hospitalet de Llobregat", "Badalona", "Sabadell", "Tarrasa"],
+        "Comunidad Valenciana": ["Valencia", "Alicante", "Elche", "Castellón de la Plana", "Torrevieja"]
+      }
+    }
+  }

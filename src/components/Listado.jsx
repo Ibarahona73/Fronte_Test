@@ -27,8 +27,8 @@ export function Listado() {
                 // Agrega la imagen en base64 si existe
                 const productosConImagenes = res.map(producto => ({
                     ...producto,
-                    imagen: producto.imagen_base64
-                        ? `data:image/jpeg;base64,${producto.imagen_base64}`
+                    imagen: producto.image
+                        ? `data:image/jpeg;base64,${producto.image}`
                         : null,
                 }));
                 setProductos(productosConImagenes);
@@ -283,15 +283,13 @@ export function Listado() {
                                 Salida Stock
                             </button>
 
-                            {/* Botón de rellenar stock */}
-                            {producto.cantidad_en_stock === 0 && (
+                            {/* Botón de rellenar stock */}                            
                                 <button
                                     className="btn btn-outline-success btn-sm"
                                     onClick={() => navigate(`/fillProd/${producto.id}`)} // Redirige a la página para rellenar stock
                                 >
                                     Rellenar Stock
                                 </button>
-                            )}
                         </div>
                     </div>
                 ))}

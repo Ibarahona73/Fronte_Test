@@ -44,8 +44,8 @@ export function ClientView() {
                     return {
                         ...producto,
                         tamaño: sizeMap[producto.tamaño] || producto.tamaño, // Normaliza el tamaño
-                        imagen: producto.imagen_base64 
-                            ? `data:image/jpeg;base64,${producto.imagen_base64}`
+                        imagen: producto.image 
+                            ? `data:image/jpeg;base64,${producto.image}`
                             : null,
                         cantidad_en_stock: stockRestante, // Actualizar el stock restante
                     };
@@ -296,21 +296,26 @@ export function ClientView() {
                             )}
 
                             {/* Nombre del producto */}
-                            <h6 className="mb-1">{producto.nombre}</h6>
+                            <h6 className="mb-1">{producto.nombre}</h6>                           
+
+                            {/* Estado del stock */}
+                            <small className={`d-block mb-2 ${producto.cantidad_en_stock > 0 ? 'text-success' : 'text-danger'}`}>
+                                {producto.cantidad_en_stock > 0 ? 'In Stock' : 'Out of Stock'}
+                            </small>                          
 
                             {/* Precio del producto */}
                             <small className="text-muted d-block mb-1">
                                 ${Number(producto.precio).toFixed(2)}
-                            </small>
+                            </small>                          
 
                             {/* Colores disponibles */}
                             <small className="text-muted d-block mb-1">
                                 {producto.colores ? `${producto.colores.split(',').length} color options` : 'No colors available'}
                             </small>
-
-                            {/* Estado del stock */}
-                            <small className={`d-block mb-2 ${producto.cantidad_en_stock > 0 ? 'text-success' : 'text-danger'}`}>
-                                {producto.cantidad_en_stock > 0 ? 'In Stock' : 'Out of Stock'}
+                            
+                            {/* Cantidad del Stock */}
+                            <small className="text-muted d-block mb-1">
+                                Cantidad Stock: {producto.cantidad_en_stock}
                             </small>
                         </div>
                     </Link>

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import Swal from 'sweetalert2';
 import { useCart } from '../components/CartContext'; // Hook para manipular el carrito
+import { createPedido } from '../api/datos.api';
 
 export function Envio() {
     const location = useLocation();
@@ -120,15 +121,79 @@ export function Envio() {
                     }}
                     onApprove={(data, actions) => {
                         // Cuando el pago es aprobado y capturado
-                        return actions.order.capture().then((details) => {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Pago completado',
-                                text: `Pago completado por ${details.payer.name.given_name}`,
-                            }).then(() => {
-                                clearCart(); // Vacía el carrito
-                                navigate('/'); // Redirige al inicio
-                            });
+                        return actions.order.capture().then(async (details) => {
+                            try {
+                                // Obtener usuario del localStorage
+                                const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+                                // Guarda los datos del cliente en localStorage
+                                localStorage.setItem('usuario', JSON.stringify({
+                                    firstName: formData.firstName,
+                                    lastName: formData.lastName,
+                                    email: formData.email,
+                                }));
+                                //const fechaEntrega = new Date(fechaCompra);
+                                const fechaCompra = new Date();
+                                // Crear un registro por cada producto en el carrito
+                                for (const item of resumen) {
+                                    const pedidoData = {           
+                                        id_pedido: details.id,                                                                                                                                                                                                                   
+                                        compañia: formData.company || '',
+                                        direccion: formData.address,                                        
+                                        pais: formData.country,
+                                        estado_pais: formData.state,
+                                        ciudad: formData.city,
+                                        zip: formData.zip,
+                                        correo: formData.email,    // Cambiado de email a correo
+                                        telefono: formData.phone || '',
+                                        estado_compra: 'Pagado',         
+                                        desc_adicional: item.descripcion || '',
+                                        producto: item.id,        // Enviamos solo el ID del producto
+                                        cantidad: parseInt(item.cantidad),
+                                        fecha_compra: fechaCompra.toISOString().split('T')[0],
+                                        fecha_entrega: fechaCompra.toISOString().split('T')[0], // Por ahora usamos la misma fecha
+                                    };
+
+                                    // Convertir el objeto a FormData ERROR1
+                                    const formDataToSend = new FormData();
+                                    Object.keys(pedidoData).forEach(key => {
+                                        if (pedidoData[key] !== null && pedidoData[key] !== undefined) {
+                                            formDataToSend.append(key, pedidoData[key]);
+                                        }
+                                    });
+
+                                    // Log para depuración
+                                    console.log('Datos del pedido a enviar:', Object.fromEntries(formDataToSend));
+                                    console.log('FormData entries:');
+                                    for (let pair of formDataToSend.entries()) {
+                                        console.log(pair[0] + ': ' + pair[1]);
+                                    }
+
+                                    const response = await createPedido(formDataToSend);
+                                    console.log('Respuesta del servidor:', response);
+                                }
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Pago completado',
+                                    text: `Pago completado por ${details.payer.name.given_name}`,
+                                }).then(() => {
+                                    clearCart(); // Vacía el carrito
+                                    navigate('/'); // Redirige al inicio
+                                });
+                            } catch (error) {
+                                console.error('Error al crear el pedido:', error);
+                                console.error('Detalles del error:', {
+                                    message: error.message,
+                                    response: error.response?.data,
+                                    status: error.response?.status
+                                });
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Hubo un error al procesar el pedido. Por favor, intente nuevamente.',
+                                });
+                            }
                         });
                     }}
                     onError={(err) => {

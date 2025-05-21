@@ -109,7 +109,7 @@ export function VisualProducto() {
                 {/* Imagen del producto */}
                 <div style={{ flex: 1 }}>
                     <img
-                        src={producto.imagen_base64 ? `data:image/jpeg;base64,${producto.imagen_base64}` : 'https://via.placeholder.com/300'}
+                        src={producto.image ? `data:image/jpeg;base64,${producto.image}` : 'https://via.placeholder.com/300'}
                         alt={producto.nombre}
                         style={{ width: '100%', borderRadius: '5px' }}
                     />
@@ -208,9 +208,9 @@ export function VisualProducto() {
                                 border: '1px solid black',
                             }}
                         >
-                            {productoRelacionado.imagen_base64 ? (
+                            {productoRelacionado.image ? (
                                 <img
-                                    src={`data:image/jpeg;base64,${productoRelacionado.imagen_base64}`}
+                                    src={`data:image/jpeg;base64,${productoRelacionado.image}`}
                                     alt={productoRelacionado.nombre}
                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 />

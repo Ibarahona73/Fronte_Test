@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 // Componente de Login
 export function Login() {
@@ -8,14 +9,24 @@ export function Login() {
   const [pass, setPass] = useState('');
 
   // Maneja el envío del formulario de login
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí va la lógica de autenticación (simulada con SweetAlert2)
-    Swal.fire({
-      icon: 'success',
-      title: '¡Bienvenido!',
-      text: 'Login simulado',
-    });
+    const result = await loginUser(user, pass);
+    if (result.success) {
+      Swal.fire({
+        icon: 'success',
+        title: '¡Bienvenido!',
+        text: 'Login exitoso',
+      });
+      // Redirige a la página principal o dashboard
+      // window.location.href = '/';
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: result.error,
+      });
+    }
   };
 
   return (
@@ -73,7 +84,7 @@ export function Login() {
           {/* Input de usuario/correo */}
           <input
             type="text"
-            placeholder="Usuario o Correo"
+            placeholder="Correo"
             value={user}
             onChange={e => setUser(e.target.value)}
             style={{
@@ -129,3 +140,19 @@ export function Login() {
 }
 
 export default Login;
+
+export async function loginUser(email, password) {
+    try {
+        const response = await axios.post('https://https://tiendaonline-backend-yaoo.onrender.com/login/', {
+            email,
+            password
+        });
+        // Guarda el token en localStorage o sessionStorage
+        localStorage.setItem('token', response.data.token);
+        // Puedes guardar también el usuario si lo necesitas
+        localStorage.setItem('usuario', JSON.stringify(response.data.email));
+        return { success: true, data: response.data };
+    } catch (error) {
+        return { success: false, error: error.response?.data?.error || 'Error de autenticación' };
+    }
+}

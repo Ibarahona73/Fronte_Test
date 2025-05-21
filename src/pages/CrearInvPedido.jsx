@@ -45,19 +45,10 @@ export function CrearInvPedido() {
                 continue;
             }
             try {
-                // Comprime la imagen antes de mostrarla
-                // const compressedFile = await compressImage(file, 1024, 0.7);
-                // newImagePreviews.push({
-                //     name: file.name,
-                //     url: URL.createObjectURL(compressedFile),
-                //     fileObject: compressedFile
-                // });
-                const compressedFile = await compressImage(file, 1024, 0.7);
-                //const base64String = await convertToBase64(file);
+                const compressedFile = await compressImage(file, 1024, 0.7);                
                 newImagePreviews.push({
                     name: file.name,
-                    url: URL.createObjectURL(compressedFile),
-                    //base64: base64String,
+                    url: URL.createObjectURL(compressedFile),                    
                     fileObject: compressedFile
                 });
             } catch (error) {

@@ -9,12 +9,30 @@ export function Carrito() {
     const { cart, cartTotal, removeFromCart, updateCartQuantity, stock } = useCart();
     const navigate = useNavigate();
 
+    const formatPrice = (price) => {
+        const priceNumber = Number(price);
+        return isNaN(priceNumber) ? '0.00' : priceNumber.toFixed(2);
+    };
+
     // Maneja el cambio de cantidad de un producto en el carrito
     const handleQuantityChange = async (id, newQuantity, oldQuantity) => {
         try {
-            const difference = newQuantity - oldQuantity;
+            const currentItem = cart.find(item => item.id === id);
+            if (!currentItem) return;
 
+            const availableStock = stock[id] || currentItem.cantidad_en_stock;
             
+            // Validar la nueva cantidad
+            if (newQuantity < 1 || newQuantity > availableStock) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cantidad no válida',
+                    text: `La cantidad debe estar entre 1 y ${availableStock}`,
+                });
+                return;
+            }
+
+            const difference = newQuantity - oldQuantity;
 
             if (difference > 0) {
                 // Si se aumenta la cantidad, reduce el stock en la base de datos
@@ -27,12 +45,11 @@ export function Carrito() {
             // Actualiza la cantidad en el carrito
             await updateCartQuantity(id, newQuantity);
         } catch (error) {
-            // Muestra error si falla la actualización
-            console.error('Error al actualizar el stock del producto:', error);
+            console.error('Error al actualizar cantidad:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Hubo un error al actualizar el stock del producto.',
+                text: 'No se pudo actualizar la cantidad. Por favor intenta nuevamente.',
             });
         }
     };
@@ -56,149 +73,160 @@ export function Carrito() {
         }
     };
 
+    const handleProceedToCheckout = () => {
+        const productsWithInvalidPrice = cart.filter(item => {
+            const price = Number(item.precio);
+            return isNaN(price) || price <= 0;
+        });
+
+        if (productsWithInvalidPrice.length > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Algunos productos tienen precios inválidos.',
+            });
+            return;
+        }
+
+        navigate('/infoclient', {
+            state: {
+                subtotal: cartTotal,
+                isv: cartTotal * 0.15,
+                total: cartTotal * 1.15,
+                resumen: cart.map(item => ({
+                    id: item.id,
+                    nombre: item.nombre,
+                    cantidad: item.quantity,
+                    precio: Number(item.precio),
+                    image: item.image
+                })),
+            }
+        });
+    };
+
     return (
-        <div style={{ padding: '20px' }}>
-            <h1>Carrito</h1>
-            <div style={{ display: 'flex', gap: '20px' }}>
-                {/* Lista de productos en el carrito */}
-                <div style={{ flex: 2 }}>
-                    {cart.map((item, index) => (
-                        <div
-                            key={index}
-                            style={{
-                                display: 'flex',
-                                marginBottom: '20px',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                borderBottom: '1px solid #ddd',
-                                paddingBottom: '10px',
-                            }}
-                        >
-                            {/* Imagen del producto */}
-                            <img
-                                src={item.imagen_base64 ? `data:image/jpeg;base64,${item.imagen_base64}` : 'https://via.placeholder.com/100'}
-                                alt={item.nombre}
-                                style={{ width: '200px', height: '100px', marginRight: '20px' }}
-                            />
-                            {/* Información del producto */}
-                            <div style={{ flex: 2 }}>
-                                <h3>{item.nombre}</h3>
-                                <p>{item.descripcion || 'No hay descripción disponible.'}</p>
-                            </div>
-                            {/* Controles de cantidad y eliminación */}
-                            <div style={{ flex: 1, textAlign: 'right' }}>
-                                <p>Precio: ${item.precio ? Number(item.precio).toFixed(2) : '0.00'}</p>
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                                    {/* Botón para disminuir cantidad */}
-                                    <button
-                                        onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.quantity)}
-                                        disabled={item.quantity <= 1}
-                                        style={{
-                                            backgroundColor: item.quantity > 1 ? '#3498db' : '#ccc',
-                                            color: '#fff',
-                                            padding: '5px 10px',
-                                            border: 'none',
-                                            borderRadius: '5px',
-                                            cursor: item.quantity > 1 ? 'pointer' : 'not-allowed',
-                                            marginRight: '10px',
-                                        }}
-                                    >
-                                        -
-                                    </button>
-                                    <p style={{ margin: '0 10px' }}>Cantidad: {item.quantity}</p>
-                                    {/* Botón para aumentar cantidad */}
-                                    <button
-                                        onClick={() =>
-                                            handleQuantityChange(
-                                                item.id,
-                                                Math.min(item.quantity + 1, stock[item.id] || item.cantidad_en_stock),
-                                                item.quantity
-                                            )
-                                        }
-                                        disabled={item.quantity >= (stock[item.id] || item.cantidad_en_stock)}
-                                        style={{
-                                            backgroundColor: item.quantity < (stock[item.id] || item.cantidad_en_stock) ? '#3498db' : '#ccc',
-                                            color: '#fff',
-                                            padding: '5px 10px',
-                                            border: 'none',
-                                            borderRadius: '5px',
-                                            cursor: item.quantity < (stock[item.id] || item.cantidad_en_stock) ? 'pointer' : 'not-allowed',
-                                        }}
-                                    >
-                                        +
-                                    </button>
+        <div className="container mt-4">
+            <h1 className="mb-4">Carrito de Compras</h1>
+            
+            {cart.length === 0 ? (
+                <div className="alert alert-info">
+                    Tu carrito está vacío
+                    <button 
+                        className="btn btn-primary ms-3"
+                        onClick={() => navigate('/')}
+                    >
+                        Ir a Productos
+                    </button>
+                </div>
+            ) : (
+                <div className="row">
+                    <div className="col-md-8">
+                        {cart.map((item, index) => {
+                            const availableStock = stock[item.id] || item.cantidad_en_stock;
+                            
+                            return (
+                                <div key={index} className="card mb-3">
+                                    <div className="row g-0">
+                                        <div className="col-md-3">
+                                            <img
+                                                src={item.image
+                                                    ? `data:image/jpeg;base64,${item.image}`
+                                                    : 'https://via.placeholder.com/150'}
+                                                className="img-fluid rounded-start"
+                                                alt={item.nombre}
+                                                style={{ height: '150px', objectFit: 'cover' }}
+                                            />
+                                        </div>
+                                        <div className="col-md-9">
+                                            <div className="card-body">
+                                                <h5 className="card-title">{item.nombre}</h5>
+                                                <p className="card-text text-muted">
+                                                    {item.descripcion || 'Sin descripción'}
+                                                </p>
+                                                <div className="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <p className="mb-0">
+                                                            <strong>Precio:</strong> ${formatPrice(item.precio)}
+                                                        </p>
+                                                        <p className="mb-0">
+                                                            <strong>Stock disponible:</strong> {availableStock}
+                                                        </p>
+                                                    </div>
+                                                    <div className="d-flex align-items-center">
+                                                        <button
+                                                            className="btn btn-outline-secondary"
+                                                            onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.quantity)}
+                                                            disabled={item.quantity <= 1}
+                                                        >
+                                                            -
+                                                        </button>
+                                                        <span className="mx-3">{item.quantity}</span>
+                                                        <button
+                                                            className="btn btn-outline-secondary"
+                                                            onClick={() => handleQuantityChange(
+                                                                item.id,
+                                                                Math.min(item.quantity + 1, availableStock),
+                                                                item.quantity
+                                                            )}
+                                                            disabled={item.quantity >= availableStock}
+                                                        >
+                                                            +
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-danger ms-3"
+                                                            onClick={() => handleRemoveFromCart(item.id, item.quantity)}
+                                                        >
+                                                            <i className="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                {/* Botón para eliminar producto */}
+                            );
+                        })}
+                    </div>
+
+                    <div className="col-md-4">
+                        <div className="card">
+                            <div className="card-header">
+                                <h5 className="mb-0">Resumen del Pedido</h5>
+                            </div>
+                            <div className="card-body">
+                                <div className="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>${cartTotal.toFixed(2)}</span>
+                                </div>
+                                <div className="d-flex justify-content-between mb-2">
+                                    <span>ISV (15%):</span>
+                                    <span>${(cartTotal * 0.15).toFixed(2)}</span>
+                                </div>
+                                <hr />
+                                <div className="d-flex justify-content-between fw-bold">
+                                    <span>Total:</span>
+                                    <span>${(cartTotal * 1.15).toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div className="card-footer bg-white">
                                 <button
-                                    onClick={() => handleRemoveFromCart(item.id, item.quantity)}
-                                    style={{
-                                        backgroundColor: '#e74c3c',
-                                        color: '#fff',
-                                        padding: '5px 10px',
-                                        border: 'none',
-                                        borderRadius: '5px',
-                                        cursor: 'pointer',
-                                        marginTop: '10px',
-                                    }}
+                                    className="btn btn-primary w-100 mb-2"
+                                    onClick={handleProceedToCheckout}
+                                    disabled={cart.length === 0}
                                 >
-                                    Eliminar
+                                    Proceder al Pago
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary w-100"
+                                    onClick={() => navigate('/')}
+                                >
+                                    Seguir Comprando
                                 </button>
                             </div>
                         </div>
-                    ))}
+                    </div>
                 </div>
-
-                {/* Resumen del carrito */}
-                <div style={{ flex: 1, border: '1px solid #ddd', padding: '20px', borderRadius: '5px' }}>
-                    <h3>Resumen</h3>
-                    <p>Subtotal: ${cartTotal.toFixed(2)}</p>
-                    <p>Envío: $0.00</p>
-                    <p>ISV: {(cartTotal * 0.15).toFixed(2)}</p>
-                    <h4>Estimado: {(cartTotal + 0 + cartTotal * 0.15).toFixed(2)}</h4>
-                    {/* Botón para proceder al pago */}
-                    <button
-                        onClick={() =>
-                            navigate('/infoclient', {
-                                state: {
-                                    subtotal: cartTotal,
-                                    isv: cartTotal * 0.15,
-                                    total: cartTotal + 0 + cartTotal * 0.15, // Incluye el envío
-                                    resumen: cart.map((item) => ({
-                                        nombre: item.nombre,
-                                        cantidad: item.quantity,
-                                    })),
-                                },
-                            })
-                        }
-                        style={{
-                            backgroundColor: '#3498db',
-                            color: '#fff',
-                            padding: '10px 20px',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            marginTop: '10px',
-                        }}
-                    >
-                        Proceder a Pagar
-                    </button>
-                    {/* Botón para regresar */}
-                    <button
-                        onClick={() => navigate(-1)}
-                        style={{
-                            backgroundColor: '#ccc',
-                            color: '#000',
-                            padding: '10px 20px',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            marginTop: '10px',
-                        }}
-                    >
-                        Regresar
-                    </button>
-                </div>
-            </div>
+            )}
         </div>
     );
 }
