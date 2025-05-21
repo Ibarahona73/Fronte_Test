@@ -1,30 +1,67 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
+import { loginUser } from '../api/datos.api'; // Asegúrate que la ruta sea correcta
+import { useAuth } from '../components/AuthenticationContext'; // Asegúrate que la ruta sea correcta
+import { useNavigate } from 'react-router-dom'; // Para redirigir después del login
 
 // Componente de Login
 export function Login() {
-  // Estados para usuario y contraseña
-  const [user, setUser] = useState('');
-  const [pass, setPass] = useState('');
+  // Estados para usuario (correo) y contraseña
+  const [email, setEmail] = useState(''); // Cambiado a email para claridad
+  const [password, setPassword] = useState(''); // Cambiado a password
+
+  // Obtiene la función login del contexto de autenticación
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
 
   // Maneja el envío del formulario de login
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await loginUser(user, pass);
-    if (result.success) {
+
+    try {
+      // Llama a la función loginUser de tu API
+      const userData = await loginUser(email, password);
+            
+
+      if(!userData)
+      {
+        Swal.fire({        
+        icon: 'error',
+        title: 'Error',
+        text: error.error || 'No se encontro el estudiante. favor, verifica tu correo y contraseña.'
+
+        })
+      }
+
+      // Si el loginUser no lanzó un error (fue exitoso)
+      // Llama a la función login del contexto para actualizar el estado de autenticación
+
+      login(userData); // Pasa los datos del usuario si es necesario por el contexto
+      
+
+      // Muestra un mensaje de éxito
       Swal.fire({
         icon: 'success',
         title: '¡Bienvenido!',
         text: 'Login exitoso',
+        timer: 1500, // Opcional: cierra la alerta después de 1.5 segundos
+        showConfirmButton: false
+      }).then(() => {
+          // Redirige a la página principal o a donde desees después del login
+          navigate('/');
       });
-      // Redirige a la página principal o dashboard
-      // window.location.href = '/';
-    } else {
+
+    } catch (error) {
+      // Si loginUser lanzó un error (credenciales incorrectas, etc.)
+      console.error("Error de login:", error); // Loggea el error para depuración
+
+      // Muestra un mensaje de error con SweetAlert2
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: result.error,
+        // Usa el mensaje de error del backend si está disponible, sino uno genérico
+        text: error.error || 'Credenciales incorrectas. Por favor, verifica tu correo y contraseña.',
       });
     }
   };
@@ -85,8 +122,8 @@ export function Login() {
           <input
             type="text"
             placeholder="Correo"
-            value={user}
-            onChange={e => setUser(e.target.value)}
+            value={email} // Usa el estado 'email'
+            onChange={e => setEmail(e.target.value)} // Actualiza el estado 'email'
             style={{
               width: '100%',
               padding: 10,
@@ -100,8 +137,8 @@ export function Login() {
           <input
             type="password"
             placeholder="Contraseña"
-            value={pass}
-            onChange={e => setPass(e.target.value)}
+            value={password} // Usa el estado 'password'
+            onChange={e => setPassword(e.target.value)} // Actualiza el estado 'password'
             style={{
               width: '100%',
               padding: 10,
@@ -140,19 +177,3 @@ export function Login() {
 }
 
 export default Login;
-
-export async function loginUser(email, password) {
-    try {
-        const response = await axios.post('https://https://tiendaonline-backend-yaoo.onrender.com/login/', {
-            email,
-            password
-        });
-        // Guarda el token en localStorage o sessionStorage
-        localStorage.setItem('token', response.data.token);
-        // Puedes guardar también el usuario si lo necesitas
-        localStorage.setItem('usuario', JSON.stringify(response.data.email));
-        return { success: true, data: response.data }; 
-    } catch (error) {
-        return { success: false, error: error.response?.data?.error || 'Error de autenticación' };
-    }
-}

@@ -19,35 +19,93 @@ import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import Login from './pages/login';
 import HistorialCompras from './pages/historialcompras';
 import {DataCliente} from './pages/DataCliente'
+import { AuthProvider, useAuth } from './components/AuthenticationContext';
 
+// Componente para rutas solo de Admin
+const AdminRoute = ({ children }) => {
+    const { isStaff, loading } = useAuth();
+
+    if (loading) {
+        return <div>Cargando...</div>; // O un spinner de carga
+    }
+
+    if (!isStaff) {
+        console.warn("Intento de acceso a ruta admin sin permisos.");
+        return <Navigate to="/" replace />; // Redirige si no es staff/admin
+    }
+
+    return children;
+};
 
 function App() {
   return (
-    <CartProvider>
-      <PayPalScriptProvider options={{ "client-id": 
-        "AU0_-KUk48ey1OZO6-E6LtGWurwOqweHGaVjZ7O7Ko4nOVbD9aZ1g7kjBPN7qkpBJGZKxOv4nXDDFl3X" }}>
+    <AuthProvider>
+      <CartProvider>
+        <PayPalScriptProvider options={{ "client-id": 
+          "AU0_-KUk48ey1OZO6-E6LtGWurwOqweHGaVjZ7O7Ko4nOVbD9aZ1g7kjBPN7qkpBJGZKxOv4nXDDFl3X" }}>
           
-        <BrowserRouter>
-          <Navigation />
-          <Routes>
-            <Route path="/producto/:id" element={<VisualProducto />} />
-            <Route path="/fillProd/:id" element={<EntradaStock />} />
-            <Route path="/crearprod" element={<CrearInvPedido />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-            <Route path="/InfoClient/" element={<InfoClient />} />
-            <Route path="/history" element={<HistorialCompras />} />
-            <Route path="/out/:id" element={<SalidaStock />} />
-            <Route path="/editar/:id" element={<Edicion />} />
-            <Route path="/inventario" element={<Listado />} />
-            <Route path="/carrito" element={<Carrito />} />
-            <Route path="/login" element={<Login />} />            
-            <Route path="/envio" element={<Envio />} />
-            <Route path="/datacliente" element={<DataCliente />} />
-            <Route path="/" element={<ClientView />} />
-          </Routes>
-        </BrowserRouter>
-      </PayPalScriptProvider>
-    </CartProvider>
+          <BrowserRouter>
+            <Navigation />
+            <Routes>
+              <Route path="/producto/:id" element={<VisualProducto />} />
+              <Route path="/fillProd/:id" element={<EntradaStock />} />
+              <Route path="/crearprod" element={<CrearInvPedido />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="/InfoClient/" element={<InfoClient />} />
+              <Route path="/history" element={<HistorialCompras />} />
+              <Route path="/out/:id" element={<SalidaStock />} />
+              <Route path="/editar/:id" element={<Edicion />} />
+              <Route path="/inventario" element={<Listado />} />
+              <Route path="/carrito" element={<Carrito />} />
+              <Route path="/login" element={<Login />} />            
+              <Route path="/envio" element={<Envio />} />
+              <Route path="/datacliente" element={<DataCliente />} />
+              <Route path="/" element={<ClientView />} />
+              <Route
+                path="/admin/create-producto"
+                element={
+                  <AdminRoute>
+                    <CrearInvPedido />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/editar-producto/:id"
+                element={
+                  <AdminRoute>
+                    <Edicion />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/inventario"
+                element={
+                  <AdminRoute>
+                    <Listado />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/salida-stock"
+                element={
+                  <AdminRoute>
+                    <SalidaStock />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/entrada-stock"
+                element={
+                  <AdminRoute>
+                    <EntradaStock />
+                  </AdminRoute>
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+        </PayPalScriptProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 }
 

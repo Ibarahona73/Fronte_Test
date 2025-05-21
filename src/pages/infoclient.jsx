@@ -4,6 +4,7 @@ import 'react-phone-number-input/style.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import paisesData from '../components/paisesData.json';
 import FormDir from '../components/Formdir';
+import Swal from 'sweetalert2';
 
 export function InfoClient() {
     const location = useLocation();
@@ -86,15 +87,27 @@ export function InfoClient() {
         
         // Validaciones
         if (!phoneValue) {
-            alert('Por favor ingrese un número de teléfono válido');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo Requerido',
+                text: 'Por favor ingrese un número de teléfono válido',
+            });
             return;
         }
         if (!formData.state) {
-            alert('Por favor seleccione un estado/departamento');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo Requerido',
+                text: 'Por favor seleccione un estado/departamento',
+            });
             return;
         }
         if (!formData.city) {
-            alert('Por favor seleccione una ciudad');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo Requerido',
+                text: 'Por favor seleccione una ciudad',
+            });
             return;
         }
 
