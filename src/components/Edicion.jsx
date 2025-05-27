@@ -297,7 +297,7 @@ export function Edicion() {
                         <button 
                             type="button"
                             className="btn btn-outline-secondary px-4"
-                            onClick={() => navigate("/inventario")}
+                            onClick={() => navigate("/admin/inventario")}
                             disabled={isSubmitting}
                         >
                             Cancelar

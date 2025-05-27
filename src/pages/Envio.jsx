@@ -4,18 +4,40 @@ import { PayPalButtons } from '@paypal/react-paypal-js';
 import Swal from 'sweetalert2';
 import { useCart } from '../components/CartContext'; // Hook para manipular el carrito
 import { createPedido } from '../api/datos.api';
+import axios from 'axios';
+
+// Mapeo de nombres de país a IDs (simulada)
+const countryMap = {
+    'Honduras': 1,
+    'Estados Unidos': 2,
+    'España': 3,
+    'México': 4,
+    'Guatemala': 5,
+    'El Salvador': 6,
+    'Nicaragua': 7,
+    'Costa Rica': 8
+};
+
+// Función para mapear nombres de país a IDs
+const getCountryId = (countryName) => {
+    return countryMap[countryName] || null;
+};
 
 export function Envio() {
     const location = useLocation();
     const navigate = useNavigate();
     const { clearCart } = useCart(); // Función para vaciar el carrito
 
-    // Obtiene los datos enviados desde la página anterior
+    // Recuperar datos del localStorage si no hay state
+    const savedClientInfo = localStorage.getItem('clientInfo');
+    const savedData = savedClientInfo ? JSON.parse(savedClientInfo) : null;
+
+    // Obtiene los datos enviados desde la página anterior o del localStorage
     const { subtotal, isv, resumen, formData } = location.state || {
         subtotal: 0,
         isv: 0,
         resumen: [],
-        formData: {},
+        formData: savedData || {},
     };
 
     // Opciones de envío disponibles
@@ -103,106 +125,145 @@ export function Envio() {
                 <PayPalButtons
                     style={{ layout: 'vertical' }}
                     createOrder={(data, actions) => {
-                        // Genera la descripción con los nombres de los productos
-                        const descripcionProductos = resumen.length === 1
-                            ? resumen[0].nombre
-                            : resumen.map(item => item.nombre).join(', ');
-
                         return actions.order.create({
                             purchase_units: [
                                 {
                                     amount: {
-                                        value: total.toFixed(2), // Total a pagar
+                                        value: total.toFixed(2),
                                     },
-                                    description: descripcionProductos,
+                                    description: resumen.length === 1
+                                        ? resumen[0].nombre
+                                        : resumen.map(item => item.nombre).join(', '),
                                 },
                             ],
                         });
                     }}
-                    onApprove={(data, actions) => {
-                        // Cuando el pago es aprobado y capturado
-                        return actions.order.capture().then(async (details) => {
-                            try {
-                                // Obtener usuario del localStorage
-                                const usuario = JSON.parse(localStorage.getItem('usuario'));
+                    onApprove={async (data, actions) => {
+                        try {
+                            // Primero verificamos que el pago se haya capturado correctamente
+                            const details = await actions.order.capture();
+                            
+                            if (!details || details.status !== 'COMPLETED') {
+                                throw new Error('El pago no se completó correctamente');
+                            }
 
-                                // Guarda los datos del cliente en localStorage
-                                localStorage.setItem('usuario', JSON.stringify({
-                                    firstName: formData.firstName,
-                                    lastName: formData.lastName,
-                                    email: formData.email,
-                                }));
-                                //const fechaEntrega = new Date(fechaCompra);
-                                const fechaCompra = new Date();
-                                // Crear un registro por cada producto en el carrito
-                                for (const item of resumen) {
-                                    const pedidoData = {           
-                                        id_pedido: details.id,                                                                                                                                                                                                                   
-                                        compañia: formData.company || '',
-                                        direccion: formData.address,                                        
-                                        pais: formData.country,
-                                        estado_pais: formData.state,
-                                        ciudad: formData.city,
-                                        zip: formData.zip,
-                                        correo: formData.email,    // Cambiado de email a correo
-                                        telefono: formData.phone || '',
-                                        estado_compra: 'Pagado',         
-                                        desc_adicional: item.descripcion || '',
-                                        producto: item.id,        // Enviamos solo el ID del producto
-                                        cantidad: parseInt(item.cantidad),
-                                        fecha_compra: fechaCompra.toISOString().split('T')[0],
-                                        fecha_entrega: fechaCompra.toISOString().split('T')[0], // Por ahora usamos la misma fecha
-                                    };
+                            // Obtener usuario del localStorage
+                            const usuario = JSON.parse(localStorage.getItem('usuario'));
 
-                                    // Convertir el objeto a FormData ERROR1
-                                    const formDataToSend = new FormData();
-                                    Object.keys(pedidoData).forEach(key => {
-                                        if (pedidoData[key] !== null && pedidoData[key] !== undefined) {
+                            // Crear un registro por cada producto en el carrito
+                            const pedidosPromises = resumen.map(async (item) => {
+                                // Calcular el envío proporcional para cada producto
+                                const envioProporcional = selectedShipping / resumen.length;
+                                
+                                const pedidoData = {
+                                    usuario_id: usuario?.id || null,
+                                    company: formData.company || '',
+                                    direccion: formData.address,
+                                    pais: getCountryId(formData.country),
+                                    estado_pais: formData.state,
+                                    ciudad: formData.city,
+                                    zip: formData.zip,
+                                    correo: formData.email,
+                                    telefono: formData.phone || '',
+                                    estado_compra: 'Pagado',
+                                    desc_adicional: item.descripcion || '',
+                                    producto: item.id,
+                                    cantidad_prod: item.cantidad,
+                                    subtotal: (item.precio * item.cantidad).toFixed(2),
+                                    isv: ((item.precio * item.cantidad) * 0.15).toFixed(2),
+                                    envio: envioProporcional.toFixed(2),  // Envío proporcional
+                                    total: (
+                                        (item.precio * item.cantidad) + 
+                                        ((item.precio * item.cantidad) * 0.15) + 
+                                        envioProporcional
+                                    ).toFixed(2),
+                                    fecha_compra: new Date().toISOString().split('T')[0],
+                                    fecha_entrega: new Date().toISOString().split('T')[0],
+                                    es_movimiento_interno: false,
+                                };
+                            
+                                // Convertir pedidoData a FormData
+                                const formDataToSend = new FormData();
+                                for (const key in pedidoData) {
+                                    if (pedidoData[key] !== null && pedidoData[key] !== undefined) {
+                                        // Asegurarse de que envio se envía como string
+                                        if (key === 'envio') {
+                                            formDataToSend.append(key, pedidoData[key].toString());
+                                        } else {
                                             formDataToSend.append(key, pedidoData[key]);
                                         }
-                                    });
-
-                                    // Log para depuración
-                                    console.log('Datos del pedido a enviar:', Object.fromEntries(formDataToSend));
-                                    console.log('FormData entries:');
-                                    for (let pair of formDataToSend.entries()) {
-                                        console.log(pair[0] + ': ' + pair[1]);
                                     }
-
+                                }
+                            
+                                try {
                                     const response = await createPedido(formDataToSend);
                                     console.log('Respuesta del servidor:', response);
+                                    return response;
+                                } catch (error) {
+                                    console.error('Error al crear pedido:', error.response?.data || error);
+                                    throw error;
                                 }
+                            });
 
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Pago completado',
-                                    text: `Pago completado por ${details.payer.name.given_name}`,
-                                }).then(() => {
-                                    clearCart(); // Vacía el carrito
-                                    navigate('/'); // Redirige al inicio
-                                });
-                            } catch (error) {
-                                console.error('Error al crear el pedido:', error);
-                                console.error('Detalles del error:', {
-                                    message: error.message,
-                                    response: error.response?.data,
-                                    status: error.response?.status
-                                });
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: 'Hubo un error al procesar el pedido. Por favor, intente nuevamente.',
-                                });
+                            // Esperar a que todos los pedidos se creen
+                            await Promise.all(pedidosPromises);
+
+                            // Limpiar datos del localStorage
+                            localStorage.removeItem('clientInfo');
+
+                            Swal.fire({
+                                title: '¡Pedido registrado!',
+                                html: `
+                                    <div class="text-start">
+                                        <p><strong>Cliente:</strong> ${formData.firstName} ${formData.lastName}</p>
+                                        <p><strong>Dirección:</strong> ${formData.address}</p>
+                                        <p><strong>Ciudad:</strong> ${formData.city}</p>
+                                        <p><strong>País:</strong> ${formData.country}</p>
+                                        <p><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</p>
+                                        <p><strong>ISV:</strong> $${isv.toFixed(2)}</p>
+                                        <p><strong>Envío:</strong> $${selectedShipping.toFixed(2)}</p>
+                                        <p><strong>Total:</strong> $${total.toFixed(2)}</p>
+                                    </div>
+                                `,
+                                icon: 'success'
+                            }).then(() => {
+                                clearCart();
+                                navigate('/');
+                            });
+                        } catch (error) {
+                            console.error('Error en el proceso de pago:', error);
+                            let errorMessage = 'Hubo un error al procesar el pago. No se ha realizado ningún cobro.';
+                            
+                            if (error.response?.data) {
+                                if (typeof error.response.data === 'object') {
+                                    errorMessage = Object.entries(error.response.data)
+                                        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+                                        .join('\n');
+                                } else {
+                                    errorMessage = error.response.data;
+                                }
                             }
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error en el pago',
+                                text: errorMessage,
+                            });
+                        }
+                    }}
+                    onCancel={() => {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Pago cancelado',
+                            text: 'El proceso de pago ha sido cancelado. No se ha realizado ningún cobro.',
                         });
                     }}
                     onError={(err) => {
-                        // Si ocurre un error en el pago
                         console.error('Error en el pago:', err);
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: 'Hubo un error al procesar el pago.',
+                            text: 'Hubo un error al procesar el pago. No se ha realizado ningún cobro.',
                         });
                     }}
                 />

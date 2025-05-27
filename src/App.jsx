@@ -44,18 +44,14 @@ function App() {
         <PayPalScriptProvider options={{ "client-id": 
           "AU0_-KUk48ey1OZO6-E6LtGWurwOqweHGaVjZ7O7Ko4nOVbD9aZ1g7kjBPN7qkpBJGZKxOv4nXDDFl3X" }}>
           
+                   
           <BrowserRouter>
             <Navigation />
             <Routes>
-              <Route path="/producto/:id" element={<VisualProducto />} />
-              <Route path="/fillProd/:id" element={<EntradaStock />} />
-              <Route path="/crearprod" element={<CrearInvPedido />} />
+              <Route path="/producto/:id" element={<VisualProducto />} />              
               <Route path="*" element={<Navigate to="/" replace />} />
               <Route path="/InfoClient/" element={<InfoClient />} />
-              <Route path="/history" element={<HistorialCompras />} />
-              <Route path="/out/:id" element={<SalidaStock />} />
-              <Route path="/editar/:id" element={<Edicion />} />
-              <Route path="/inventario" element={<Listado />} />
+              <Route path="/history" element={<HistorialCompras />} />                                       
               <Route path="/carrito" element={<Carrito />} />
               <Route path="/login" element={<Login />} />            
               <Route path="/envio" element={<Envio />} />
@@ -86,7 +82,7 @@ function App() {
                 }
               />
               <Route
-                path="/admin/salida-stock"
+                path="/admin/salida-stock/:id"
                 element={
                   <AdminRoute>
                     <SalidaStock />
@@ -94,7 +90,7 @@ function App() {
                 }
               />
               <Route
-                path="/admin/entrada-stock"
+                path="/admin/entrada-stock/:id"
                 element={
                   <AdminRoute>
                     <EntradaStock />

@@ -270,7 +270,7 @@ export function Listado() {
                             {/* Botón de edición */}
                             <button
                                 className="btn btn-outline-secondary btn-sm"
-                                onClick={() => navigate(`/editar/${producto.id}`)}
+                                onClick={() => navigate(`/admin/editar-producto/${producto.id}`)}
                             >
                                 <i className="bi bi-pencil"></i> Editar Producto
                             </button>
@@ -278,7 +278,8 @@ export function Listado() {
                             {/* Botón de salida de stock */}
                             <button
                                 className="btn btn-outline-primary btn-sm"
-                                onClick={() => navigate(`/out/${producto.id}`)} // Redirige a la página de salida de stock con el ID del producto
+                                onClick={() => navigate(`/admin/salida-stock/${producto.id}`)} //
+                                // /admin/editar-producto/:id Redirige a la página de salida de stock con el ID del producto
                             >
                                 Salida Stock
                             </button>
@@ -286,7 +287,7 @@ export function Listado() {
                             {/* Botón de rellenar stock */}                            
                                 <button
                                     className="btn btn-outline-success btn-sm"
-                                    onClick={() => navigate(`/fillProd/${producto.id}`)} // Redirige a la página para rellenar stock
+                                    onClick={() => navigate(`/admin/entrada-stock/${producto.id}`)} // Redirige a la página para rellenar stock
                                 >
                                     Rellenar Stock
                                 </button>

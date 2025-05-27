@@ -51,12 +51,21 @@ export function EntradaStock() {
 
             // Mostrar mensaje de éxito
             Swal.fire({
-                icon: 'success',
-                title: '¡Éxito!',
-                text: 'Entrada de stock registrada exitosamente.',
+                title: '¡Entrada registrada!',
+                html: `
+                    <div class="text-start">
+                        <p><strong>Producto:</strong> ${producto.nombre}</p>
+                        <p><strong>Cantidad:</strong> ${cantidad}</p>
+                        <p><strong>Stock anterior:</strong> ${producto.cantidad_en_stock}</p>
+                        <p><strong>Stock actual:</strong> ${nuevoStock}</p>
+                        <p><strong>Descripción:</strong> ${descripcion}</p>                        
+                    </div>
+                `,
+                icon: 'success'
             });
+            
             // Redirigir al inventario después de registrar la entrada
-            navigate('/inventario');
+            navigate('/admin/inventario/');
         } catch (err) {
             // Mostrar mensaje de error si falla el registro
             console.error('Error al registrar la entrada de stock:', err);            

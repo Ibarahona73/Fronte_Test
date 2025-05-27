@@ -176,6 +176,7 @@ export const deletePedido = (id) => {
         });
 };
 
+//Login,register,profile
 export const loginUser = async (email, password) => {
     try {
         const response = await api.post('/login/', { email, password });
@@ -211,14 +212,52 @@ function getAuthHeaders() {
     return token ? { Authorization: `Token ${token}` } : {};
 }
 
-// Ejemplo de uso en un endpoint protegido:
-export const getProfile = async () => {
+/**
+ * Actualiza el perfil del usuario
+ * @param {Object} userData - Datos del usuario a actualizar
+ * @returns {Promise} Respuesta de la API
+ * 
+ * Cambios implementados:
+ * - Headers consistentes con Content-Type JSON
+ * - Mejor manejo de errores
+ */
+export const getProfile = async (userData) => {
     try {
-        const response = await api.post('/profile/', {}, {
-            headers: getAuthHeaders()
+        const response = await api.put('/profile/', userData, {
+            headers: {
+                'Content-Type': 'application/json', // Siempre JSON para este endpoint
+                ...getAuthHeaders()
+            }
         });
+        
+        // Actualizar localStorage solo si recibimos datos
+        if (response.data) {
+            localStorage.setItem('usuario', JSON.stringify(response.data));
+        }
         return response.data;
     } catch (error) {
+        // Error detallado para debugging
+        console.error('Error en getProfile:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            config: error.config
+        });
+        
+        // Propagar error con información relevante
+        const apiError = new Error(error.response?.data?.message || 'Error al actualizar perfil');
+        apiError.response = error.response;
+        throw apiError;
+    }
+};
+
+//Movimientos
+
+export const registrarSalidaStock = async (movimientoData) => {
+    try {
+        const response = await api.post('/movimientos/', movimientoData);
+        return response.data;
+    } catch (error) {
+        console.error('Error al registrar salida:', error);
         throw error.response?.data || error;
     }
 };

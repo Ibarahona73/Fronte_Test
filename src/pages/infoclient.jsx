@@ -31,10 +31,19 @@ export function InfoClient() {
     } = location.state || {};
 
     // Estado local para los datos del formulario
-    const [formData, setFormData] = useState(initialFormData);
+    const [formData, setFormData] = useState(() => {
+        // Intentar recuperar datos del localStorage
+        const savedData = localStorage.getItem('clientInfo');
+        return savedData ? JSON.parse(savedData) : initialFormData;
+    });
     const [phoneValue, setPhoneValue] = useState(formData.phone || '');
     const [regiones, setRegiones] = useState([]);
     const [ciudades, setCiudades] = useState([]);
+
+    // Guardar datos en localStorage cuando cambien
+    useEffect(() => {
+        localStorage.setItem('clientInfo', JSON.stringify(formData));
+    }, [formData]);
 
     // Determinar el nombre correcto para la región según el país
     const getRegionKey = (country) => {
@@ -111,6 +120,13 @@ export function InfoClient() {
             return;
         }
 
+        // Guardar datos actualizados en localStorage
+        const updatedFormData = {
+            ...formData,
+            phone: phoneValue
+        };
+        localStorage.setItem('clientInfo', JSON.stringify(updatedFormData));
+
         // Redirige a la página de envío con los datos necesarios
         navigate('/envio', {
             state: {
@@ -118,10 +134,7 @@ export function InfoClient() {
                 isv,
                 total,
                 resumen,
-                formData: {
-                    ...formData,
-                    phone: phoneValue
-                },
+                formData: updatedFormData,
             },
         });
     };
@@ -145,11 +158,11 @@ export function InfoClient() {
                 onPhoneChange={handlePhoneChange}
                 onSubmit={handleSubmit}
                 showEmail={true}
-                showResumen={true}
+                showResumen={true}                
                 resumen={resumen}
                 subtotal={subtotal}
                 isv={isv}
-                total={total}
+                total={total}                
             />
             <button
                 className="btn btn-secondary mt-2 col-md-2"

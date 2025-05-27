@@ -48,8 +48,14 @@ export function Login() {
         timer: 1500, // Opcional: cierra la alerta después de 1.5 segundos
         showConfirmButton: false
       }).then(() => {
-          // Redirige a la página principal o a donde desees después del login
-          navigate('/');
+          // Verifica si hay una ruta guardada para redirigir después del login
+          const redirectPath = localStorage.getItem('redirectAfterLogin');
+          if (redirectPath) {
+              localStorage.removeItem('redirectAfterLogin'); // Limpia la ruta guardada
+              navigate(redirectPath);
+          } else {
+              navigate('/'); // Si no hay ruta guardada, redirige al inicio
+          }
       });
 
     } catch (error) {

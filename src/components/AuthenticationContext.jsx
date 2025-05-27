@@ -46,6 +46,7 @@ export const AuthProvider = ({ children }) => {
                  // *** CORRECCIÓN: Verifica si es staff O superuser al hacer login ***
                  setIsStaff(data.user?.is_staff === true || data.user?.is_superuser === true);
                  localStorage.setItem('usuario', JSON.stringify(data.user));                 
+                 
             } else {
                  // Si no hay objeto user, asume que no es staff
                  setUser(null);

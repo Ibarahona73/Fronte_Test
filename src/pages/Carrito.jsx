@@ -3,11 +3,13 @@ import { useCart } from '../components/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { updateProductoStock, addProductoStock } from '../api/datos.api'; // Importa las funciones para actualizar el stock
 import Swal from 'sweetalert2';
+import { useAuth } from '../components/AuthenticationContext';
 
 export function Carrito() {
     // Obtiene el carrito, total, funciones y stock del contexto
     const { cart, cartTotal, removeFromCart, updateCartQuantity, stock } = useCart();
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     const formatPrice = (price) => {
         const priceNumber = Number(price);
@@ -74,6 +76,22 @@ export function Carrito() {
     };
 
     const handleProceedToCheckout = () => {
+        if (!user) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Inicio de sesión requerido',
+                text: 'Debes iniciar sesión para proceder con el pago',
+                confirmButtonText: 'Ir a iniciar sesión'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Guarda la ruta actual en localStorage para redirigir después del login
+                    localStorage.setItem('redirectAfterLogin', '/carrito');
+                    navigate('/login');
+                }
+            });
+            return;
+        }
+
         const productsWithInvalidPrice = cart.filter(item => {
             const price = Number(item.precio);
             return isNaN(price) || price <= 0;
@@ -195,11 +213,11 @@ export function Carrito() {
                             </div>
                             <div className="card-body">
                                 <div className="d-flex justify-content-between mb-2">
-                                    <span>Subtotal:</span>
+                                    <strong><span>Subtotal:</span></strong>
                                     <span>${cartTotal.toFixed(2)}</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-2">
-                                    <span>ISV (15%):</span>
+                                    <strong><span>Est.ISV:</span></strong>
                                     <span>${(cartTotal * 0.15).toFixed(2)}</span>
                                 </div>
                                 <hr />
