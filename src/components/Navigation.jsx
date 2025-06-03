@@ -138,7 +138,7 @@ export function Navigation() {
                             // Opciones si está loggeado
                             <>
                              <Link
-                                    to="/history"
+                                    to={user?.is_staff ? "/admin/history" : "/history"} // Enlace condicional
                                     onClick={() => setIsDropdownOpen(false)} // Cierra dropdown al hacer click
                                     style={{
                                         padding: '8px 15px',

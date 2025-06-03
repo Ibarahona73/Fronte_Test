@@ -17,7 +17,8 @@ import { Envio } from './pages/Envio';
 import './App.css';
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import Login from './pages/login';
-import HistorialCompras from './pages/historialcompras';
+import {HistorialCompras} from './pages/historialcompras';
+import {AdminHistorialCompras} from './pages/AdminHistorialCompras';
 import {DataCliente} from './pages/DataCliente'
 import { AuthProvider, useAuth } from './components/AuthenticationContext';
 
@@ -37,6 +38,21 @@ const AdminRoute = ({ children }) => {
     return children;
 };
 
+// Componente para manejar la redirección condicional del historial
+const HistoryRoute = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Cargando...</div>; // O un spinner de carga
+  }
+
+  if (user?.is_staff) {
+    return <Navigate to="/admin/history" replace />;
+  } else {
+    return <HistorialCompras />;
+  }
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -51,7 +67,7 @@ function App() {
               <Route path="/producto/:id" element={<VisualProducto />} />              
               <Route path="*" element={<Navigate to="/" replace />} />
               <Route path="/InfoClient/" element={<InfoClient />} />
-              <Route path="/history" element={<HistorialCompras />} />                                       
+              <Route path="/history" element={<HistoryRoute />} />                                       
               <Route path="/carrito" element={<Carrito />} />
               <Route path="/login" element={<Login />} />            
               <Route path="/envio" element={<Envio />} />
@@ -97,7 +113,15 @@ function App() {
                   </AdminRoute>
                 }
               />
-            </Routes>
+              <Route
+                path="/admin/history"
+                element={
+                  <AdminRoute>
+                    <AdminHistorialCompras />
+                  </AdminRoute>
+                }
+              />
+            </Routes>           
           </BrowserRouter>
         </PayPalScriptProvider>
       </CartProvider>

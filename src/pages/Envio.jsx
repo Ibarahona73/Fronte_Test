@@ -6,23 +6,6 @@ import { useCart } from '../components/CartContext'; // Hook para manipular el c
 import { createPedido } from '../api/datos.api';
 import axios from 'axios';
 
-// Mapeo de nombres de país a IDs (simulada)
-const countryMap = {
-    'Honduras': 1,
-    'Estados Unidos': 2,
-    'España': 3,
-    'México': 4,
-    'Guatemala': 5,
-    'El Salvador': 6,
-    'Nicaragua': 7,
-    'Costa Rica': 8
-};
-
-// Función para mapear nombres de país a IDs
-const getCountryId = (countryName) => {
-    return countryMap[countryName] || null;
-};
-
 export function Envio() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -150,6 +133,9 @@ export function Envio() {
                             // Obtener usuario del localStorage
                             const usuario = JSON.parse(localStorage.getItem('usuario'));
 
+                            // Crear un ID de pedido único
+                            const pedidoId = Date.now().toString();
+
                             // Crear un registro por cada producto en el carrito
                             const pedidosPromises = resumen.map(async (item) => {
                                 // Calcular el envío proporcional para cada producto
@@ -159,7 +145,7 @@ export function Envio() {
                                     usuario_id: usuario?.id || null,
                                     company: formData.company || '',
                                     direccion: formData.address,
-                                    pais: getCountryId(formData.country),
+                                    pais: formData.country,
                                     estado_pais: formData.state,
                                     ciudad: formData.city,
                                     zip: formData.zip,
@@ -180,6 +166,7 @@ export function Envio() {
                                     fecha_compra: new Date().toISOString().split('T')[0],
                                     fecha_entrega: new Date().toISOString().split('T')[0],
                                     es_movimiento_interno: false,
+                                    id_pedido: pedidoId, // Agregar el ID de pedido único
                                 };
                             
                                 // Convertir pedidoData a FormData
@@ -215,6 +202,7 @@ export function Envio() {
                                 title: '¡Pedido registrado!',
                                 html: `
                                     <div class="text-start">
+                                        <p><strong>ID del Pedido:</strong> ${pedidoId}</p>
                                         <p><strong>Cliente:</strong> ${formData.firstName} ${formData.lastName}</p>
                                         <p><strong>Dirección:</strong> ${formData.address}</p>
                                         <p><strong>Ciudad:</strong> ${formData.city}</p>

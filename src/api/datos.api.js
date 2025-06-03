@@ -263,3 +263,47 @@ export const registrarSalidaStock = async (movimientoData) => {
 };
 
     
+//PEDIDO DETALLES
+
+export const getPedidoDetalles = () => {
+    return api.get('/api/v1/detalles-pedido/')
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error fetching detalles-pedido:', error);
+            throw error;
+        });
+};
+
+//SIN S 
+
+export const getPedidoDetalle = (id) => {
+    return api.get(`/api/v1/detalles-pedido/${id}/`)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error fetching pedido:', error);
+            throw error;
+        });
+};
+
+
+//USUARIOS
+
+export const getUsuarios = () => {
+    return api.get('/api/v1/usuarios/')
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error fetching detalles-pedido:', error);
+            throw error;
+        });
+};
+
+//SIN S 
+
+export const getUsuario = (id) => {
+    return api.get(`/api/v1/usuarios/${id}/`)
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error fetching pedido:', error);
+            throw error;
+        });
+};

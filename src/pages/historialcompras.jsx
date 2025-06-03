@@ -1,145 +1,140 @@
 import React, { useEffect, useState } from 'react';
-import { getPedidos, getProductos } from '../api/datos.api';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../components/AuthenticationContext'; // Importar el contexto de autenticación
+import { getPedidos } from '../api/datos.api'; // Importar la función para obtener pedidos
+import Swal from 'sweetalert2';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Importar Bootstrap si aún no está en tu proyecto
 
-function HistorialCompras() {
+export function HistorialCompras() {
+    const { user } = useAuth(); // Obtener el usuario del contexto de autenticación
+    const navigate = useNavigate();
     const [pedidos, setPedidos] = useState([]);
-    const [productos, setProductos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [filterStatus, setFilterStatus] = useState('Todos'); // Estado para el filtro
 
-    // Estado para búsqueda
-    const usuarioLocal = JSON.parse(localStorage.getItem('usuario'));
-    const [busqueda, setBusqueda] = useState({
-        firstName: usuarioLocal?.firstName || '',
-        lastName: usuarioLocal?.lastName || ''
-    });
+    // Opciones de estado para el filtro
+    const statusOptions = ['Todos', 'Pagado', 'En Camino', 'Entregado', 'Cancelado'];
 
     useEffect(() => {
-        async function fetchData() {
+        async function fetchPedidos() {
+            if (!user) {
+                setLoading(false);
+                setError('Usuario no autenticado.');
+                return;
+            }
+
             try {
-                const [pedidosData, productosData] = await Promise.all([
-                    getPedidos(),
-                    getProductos()
-                ]);
-                // Diccionario id → nombre
-                const productosDict = {};
-                productosData.forEach(prod => {
-                    productosDict[prod.id] = prod.nombre;
-                });
-                setPedidos(pedidosData);
-                setProductos(productosDict);
+                setLoading(true);
+                // Obtener todos los pedidos (idealmente, el backend debería filtrar por usuario)
+                const allPedidos = await getPedidos();
+
+                // Filtrar por el usuario logueado
+                const userPedidos = allPedidos.filter(pedido => pedido.usuario === user.id);
+
+                setPedidos(userPedidos);
             } catch (err) {
-                setError('Error al cargar el historial');
+                setError('Error al cargar el historial de compras.');
+                console.error('Error fetching orders:', err);
             } finally {
                 setLoading(false);
             }
         }
-        fetchData();
-    }, []);
 
-    // Filtra los pedidos por nombre y apellido
-    const pedidosFiltrados = pedidos.filter(
-        pedido =>
-            pedido.nombre_cliente?.toLowerCase() === busqueda.firstName.toLowerCase() &&
-            pedido.apellido_cliente?.toLowerCase() === busqueda.lastName.toLowerCase()
+        fetchPedidos();
+    }, [user]); // Recargar pedidos si el usuario cambia
+
+    // Filtrar pedidos basados en el estado seleccionado
+    const filteredPedidos = pedidos.filter(pedido => 
+        filterStatus === 'Todos' || pedido.estado_compra === filterStatus
     );
 
-    if (loading) return <div>Cargando historial...</div>;
-    if (error) return <div style={{ color: 'red' }}>{error}</div>;
+    if (loading) {
+        return <div className="text-center mt-4">Cargando historial...</div>;
+    }
 
-    // Función para mostrar el estado con color
-    const EstadoPedido = ({ estado }) => {
-        let color = '#888';
-        let texto = estado;
-        if (estado === 'Pagado') { color = 'red'; texto = 'Pagado'; }
-        else if (estado === 'En Camino' || estado === 'Pendiente') { color = 'blue'; texto = 'Pendiente'; }
-        else if (estado === 'Recibido' || estado === 'Entregado') { color = 'green'; texto = 'Entregado'; }
-        return <span style={{ color, fontWeight: 600 }}>{texto}</span>;
-    };
+    if (error) {
+        return <div className="alert alert-danger mt-4">{error}</div>;
+    }
+
+    if (pedidos.length === 0) {
+        return <div className="text-center mt-4">No tienes pedidos registrados.</div>;
+    }
 
     return (
-        <div style={{ maxWidth: 700, margin: '0 auto', padding: 24 }}>
-            <h2 style={{ textAlign: 'center', marginBottom: 32 }}>Historial De Compras</h2>
-            {/* Formulario de búsqueda */}
-            <form
-                style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'center' }}
-                onSubmit={e => e.preventDefault()}
-            >
-                <input
-                    type="text"
-                    placeholder="Nombre"
-                    value={busqueda.firstName}
-                    onChange={e => setBusqueda({ ...busqueda, firstName: e.target.value })}
-                    style={{ padding: 6, borderRadius: 4, border: '1px solid #ccc' }}
-                />
-                <input
-                    type="text"
-                    placeholder="Apellido"
-                    value={busqueda.lastName}
-                    onChange={e => setBusqueda({ ...busqueda, lastName: e.target.value })}
-                    style={{ padding: 6, borderRadius: 4, border: '1px solid #ccc' }}
-                />
-            </form>
-            {pedidosFiltrados.length === 0 ? (
-                <p>No se encontraron compras para este usuario.</p>
-            ) : (
-                pedidosFiltrados.map((pedido) => (
-                    <div
-                        key={pedido.id_pedido}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            border: '1px solid #bbb',
-                            borderRadius: 12,
-                            padding: 16,
-                            marginBottom: 18,
-                            justifyContent: 'space-between',
-                            boxShadow: '0 2px 8px #eee'
-                        }}
-                    >
-                        {/* Imagen de producto (opcional) */}
-                        <div style={{ width: 70, height: 70, background: '#f3f3f3', borderRadius: 8, marginRight: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ color: '#bbb', fontSize: 32 }}>🛒</span>
-                        </div>
-                        {/* Info de la orden */}
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 700, fontSize: 18 }}>
-                                Orden #{pedido.id_pedido}
-                            </div>
-                            <div style={{ fontSize: 15, margin: '8px 0' }}>
-                                <span>
-                                    {pedido.cantidad}x {productos[pedido.producto] || 'Producto'}
-                                </span>
+        <div className="container mt-4">
+            <h1 className="mb-4">Historial De Compras</h1>
+            
+            {/* Selector de estado */}
+            <div className="mb-3">
+                <label htmlFor="statusFilter" className="form-label">Filtrar por Estado:</label>
+                <select 
+                    id="statusFilter" 
+                    className="form-select w-auto"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                >
+                    {statusOptions.map(option => (
+                        <option key={option} value={option}>{option}</option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="list-group">
+                {filteredPedidos.map(pedido => (
+                    <div key={pedido.id_pedido} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-3 rounded-3 shadow-sm">
+                        <div className="d-flex align-items-center">
+                            {/* Placeholder para la imagen */}
+                            <div style={{ width: '50px', height: '50px', backgroundColor: '#ccc', marginRight: '15px', borderRadius: '8px' }}></div>
+                            
+                            <div>
+                                <h5 className="mb-1">{pedido.es_movimiento_interno === true || pedido.es_movimiento_interno === 1 ? 'Salida de Stock' : `Orden #${pedido.id_pedido}`}</h5>
+                                {/* Resumen de productos */}
+                                <p className="mb-1">
+                                    {/* Mapear los detalles para mostrar la cantidad y nombre del producto */}
+                                    {pedido.detalles && pedido.detalles.length > 0 ?
+                                        pedido.detalles.map((detalle, index) => (
+                                            <span key={detalle.id}>
+                                                {`${detalle.cantidad_prod}x ${detalle.producto_nombre}`}
+                                                {index < pedido.detalles.length - 1 ? ', ' : ''}
+                                            </span>
+                                        )) :
+                                        'Detalles no disponibles'
+                                    }
+                                </p>
                             </div>
                         </div>
-                        {/* Precio y estado */}
-                        <div style={{ textAlign: 'right', minWidth: 120 }}>
-                            <div style={{ fontWeight: 700, fontSize: 16 }}>
-                                ${pedido.total ? Number(pedido.total).toFixed(2) : '0.00'}
-                            </div>
-                            <div style={{ marginTop: 8 }}>
-                                <EstadoPedido estado={pedido.estado || 'Pagado'} />
-                            </div>
+                        
+                        <div className="text-end">
+                            {/* Precio total (usando total_pedido si tu serializer lo incluye) */}
+                            {/* Si total_pedido no está disponible, puedes calcularlo sumando los totales de los detalles */}
+                            <p className="mb-1">${pedido.total_pedido ? parseFloat(pedido.total_pedido).toFixed(2) : 'N/A'}</p>
+                            {/* Estado del pedido con color */}
+                            {/* Ajustar el color según el estado real que venga del backend */}
+                            <span className={`badge bg-${
+                                pedido.estado_compra === 'Pagado' ? 'success' :
+                                pedido.estado_compra === 'En Camino' ? 'primary' :
+                                pedido.estado_compra === 'Recibido' ? 'info' :
+                                pedido.estado_compra === 'Entregado' ? 'success' :
+                                pedido.estado_compra === 'Cancelado' ? 'danger' : 'secondary'
+                            }`}>
+                                {pedido.estado_compra}
+                            </span>
                         </div>
                     </div>
-                ))
-            )}
-            <button
-                onClick={() => window.history.back()}
-                style={{
-                    marginTop: 24,
-                    padding: '8px 24px',
-                    borderRadius: 8,
-                    border: '1px solid #333',
-                    background: '#fff',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                }}
-            >
-                ⬅ Regresar
-            </button>
+                ))}
+            </div>
+
+            {/* Botón Regresar */}
+            <div className="mt-4">
+                <button
+                    className="btn btn-secondary"
+                    onClick={() => navigate(-1)}
+                >
+                    <i className="bi bi-arrow-left"></i> Regresar
+                </button>
+            </div>
+
         </div>
     );
 }
-
-export default HistorialCompras;
