@@ -14,7 +14,7 @@ export function HistorialCompras() {
     const [filterStatus, setFilterStatus] = useState('Todos'); // Estado para el filtro
 
     // Opciones de estado para el filtro
-    const statusOptions = ['Todos', 'Pagado', 'En Camino', 'Entregado', 'Cancelado'];
+    const statusOptions = ['Todos', 'Pagado', 'En Camino', 'Recibido', 'Cancelado'];
 
     useEffect(() => {
         async function fetchPedidos() {
@@ -115,7 +115,7 @@ export function HistorialCompras() {
                                 pedido.estado_compra === 'Pagado' ? 'success' :
                                 pedido.estado_compra === 'En Camino' ? 'primary' :
                                 pedido.estado_compra === 'Recibido' ? 'info' :
-                                pedido.estado_compra === 'Entregado' ? 'success' :
+                                pedido.estado_compra === 'Recibido' ? 'success' :
                                 pedido.estado_compra === 'Cancelado' ? 'danger' : 'secondary'
                             }`}>
                                 {pedido.estado_compra}

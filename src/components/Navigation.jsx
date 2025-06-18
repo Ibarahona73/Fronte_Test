@@ -14,7 +14,7 @@ export function Navigation() {
     const dropdownRef = useRef(null); // Referencia para el contenedor del dropdown
 
     // Calcula el total de productos en el carrito
-    const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+    const totalItems = cart.reduce((total, item) => total + item.cantidad_prod, 0);
 
     // Función para alternar la visibilidad del dropdown
     const toggleDropdown = () => {

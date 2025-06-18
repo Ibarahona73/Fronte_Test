@@ -39,6 +39,7 @@ export function ClientView() {
                 const productosConImagenes = res.map(producto => {
                     // Calcular el stock restante considerando los productos en el carrito
                     const productoEnCarrito = cart.find((item) => item.id === producto.id);
+                    //CONSULTA TABLA CARRITOTEMP PARA TENER LOS PROD O CANT DE PROD RESERVADOS,
                     const stockRestante = producto.cantidad_en_stock - (productoEnCarrito?.quantity || 0);
 
                     return {

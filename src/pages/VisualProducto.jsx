@@ -1,28 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProducto, getProductos, updateProductoStock } from '../api/datos.api'; // Importa la función para actualizar el stock
+import { getProducto, getProductos } from '../api/datos.api';
 import { Navigation } from '../components/Navigation';
 import { useCart } from '../components/CartContext';
 import Swal from 'sweetalert2';
 
 export function VisualProducto() {
-    const { id } = useParams(); // Obtiene el ID del producto desde la URL
+    const { id } = useParams();
     const navigate = useNavigate();
-    const { addToCart, cart } = useCart(); // Obtiene funciones y datos del carrito
-    const [producto, setProducto] = useState(null); // Estado para el producto actual
-    const [productosRelacionados, setProductosRelacionados] = useState([]); // Estado para productos relacionados
-    const [loading, setLoading] = useState(true); // Estado de carga
-    const [error, setError] = useState(null); // Estado de error
-    const [cantidad, setCantidad] = useState(1); // Estado para la cantidad a agregar al carrito
-    const [showCartPopup, setShowCartPopup] = useState(false); // Estado para mostrar el popup del carrito
-    const [isSubmitting, setIsSubmitting] = useState(false); // Estado para evitar múltiples envíos
+    const { addToCart } = useCart();
+    const [producto, setProducto] = useState(null);
+    const [productosRelacionados, setProductosRelacionados] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [cantidad, setCantidad] = useState(1);
+    const [showCartPopup, setShowCartPopup] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Carga el producto al montar el componente o cuando cambia el id
     useEffect(() => {
         async function fetchProducto() {
             try {
                 const data = await getProducto(id);
-                setProducto(data); // Usa el stock directamente del backend
+                setProducto(data);
             } catch (err) {
                 console.error('Error fetching producto:', err);
                 setError('Error al cargar el producto');
@@ -32,81 +31,87 @@ export function VisualProducto() {
         }
 
         fetchProducto();
-    }, [id]); // Solo depende del ID del producto
+    }, [id]);
 
-    // Carga productos relacionados 
     useEffect(() => {
         async function fetchProductosRelacionados() {
             try {
                 const productos = await getProductos();
-                setProductosRelacionados(productos.slice(0, 5)); // Obtener los primeros 5 productos
+                setProductosRelacionados(productos.slice(0, 5));
             } catch (err) {
                 console.error('Error fetching productos relacionados:', err);
             }
         }
 
         fetchProductosRelacionados();
-    }, [id]); // Asegúrate de que las dependencias sean correctas
+    }, [id]);
 
-    // Muestra mensajes de carga o error si corresponde
     if (loading) return <div>Cargando producto...</div>;
     if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
-    // Maneja el cambio de cantidad en el input
     const handleCantidadChange = (e) => {
         const value = Math.min(Math.max(1, parseInt(e.target.value, 10)), producto.cantidad_en_stock);
         setCantidad(value);
     };
 
-    // Maneja la acción de añadir al carrito
     const handleAddToCart = async () => {
-        if (isSubmitting) return; // Evita múltiples ejecuciones
+        if (isSubmitting) return;
         setIsSubmitting(true);
 
-        // Verifica si hay suficiente stock
-        if (cantidad > producto.cantidad_en_stock) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Stock insuficiente',
-                text: 'No hay suficiente stock disponible.',
-            });
-            setIsSubmitting(false);
-            return;
-        }
-
         try {
-            // Reducir el stock en la base de datos
-            await updateProductoStock(producto.id, -cantidad);
+            const token = localStorage.getItem('token');
+            const usuario = localStorage.getItem('usuario');
+            
+            if (!token || !usuario) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Inicio de sesión requerido',
+                    text: 'Debes iniciar sesión para agregar productos al carrito',
+                    confirmButtonText: 'Ir a iniciar sesión'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        localStorage.setItem('redirectAfterLogin', '/producto/' + id);
+                        navigate('/login');
+                    }
+                });
+                return;
+            }
 
-            // Reducir el stock en el frontend
-            setProducto((prevProducto) => ({
-                ...prevProducto,
-                cantidad_en_stock: prevProducto.cantidad_en_stock - cantidad,
-            }));
-
-            // Añadir al carrito
-            addToCart(producto, cantidad);
-
-            // Mostrar popup de éxito
+            await addToCart(producto, cantidad);
             setShowCartPopup(true);
-            setTimeout(() => setShowCartPopup(false), 4000); // Ocultar el popup después de 4 segundos
+            setTimeout(() => setShowCartPopup(false), 4000);
         } catch (error) {
-            console.error('Error al actualizar el stock:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Hubo un error al actualizar el stock.',
-            });
+            console.error('Error al agregar al carrito:', error);
+            
+            if (error.message.includes('Sesión expirada') || error.response?.status === 401 || error.response?.status === 403) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('usuario');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sesión expirada',
+                    text: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
+                    confirmButtonText: 'Ir a iniciar sesión'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        localStorage.setItem('redirectAfterLogin', '/producto/' + id);
+                        navigate('/login');
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Hubo un error al agregar el producto al carrito.',
+                });
+            }
         } finally {
-            setIsSubmitting(false); // Restablece el estado
+            setIsSubmitting(false);
         }
     };
 
     return (
         <div>
-            {/* Sección principal del producto */}
             <div style={{ padding: '20px', display: 'flex', gap: '20px' }}>
-                {/* Imagen del producto */}
                 <div style={{ flex: 1 }}>
                     <img
                         src={producto.image ? `data:image/jpeg;base64,${producto.image}` : 'https://via.placeholder.com/300'}
@@ -114,7 +119,6 @@ export function VisualProducto() {
                         style={{ width: '100%', borderRadius: '5px' }}
                     />
                 </div>
-                {/* Detalles del producto y acciones */}
                 <div style={{ flex: 1, border: '1px solid #ddd', padding: '20px', borderRadius: '5px' }}>
                     <h1>{producto.nombre}</h1>
                     <h2 style={{ color: '#3498db' }}>
@@ -122,7 +126,6 @@ export function VisualProducto() {
                     </h2>
                     <p>{producto.descripcion || 'No hay descripción disponible.'}</p>
                     <p><strong>Stock disponible:</strong> {producto.cantidad_en_stock > 0 ? producto.cantidad_en_stock : 'Agotado'}</p>
-                    {/* Input para seleccionar cantidad */}
                     <input
                         type="number"
                         value={cantidad}
@@ -137,7 +140,6 @@ export function VisualProducto() {
                         }}
                         disabled={producto.cantidad_en_stock === 0}
                     />
-                    {/* Botón para añadir al carrito */}
                     <button
                         onClick={handleAddToCart}
                         style={{
@@ -155,7 +157,6 @@ export function VisualProducto() {
                 </div>
             </div>
 
-            {/* Popup del carrito */}
             {showCartPopup && (
                 <div style={{
                     position: 'fixed',
@@ -186,7 +187,6 @@ export function VisualProducto() {
                 </div>
             )}
 
-            {/* Productos relacionados */}
             <div className="mt-5">
                 <h3>Productos Relacionados</h3>
                 <div className="d-flex gap-3">

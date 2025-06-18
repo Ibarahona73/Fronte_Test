@@ -110,7 +110,7 @@ export function DataCliente() {
             }
             
             // Convertir nombre de país a ID para el backend
-            const countryId = getCountryId(formData.country);
+            const countryId = getCountryNameById(formData.country);
             if (!countryId) {
                 throw new Error('País seleccionado no válido');
             }

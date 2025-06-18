@@ -3,13 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import Swal from 'sweetalert2';
 import { useCart } from '../components/CartContext'; // Hook para manipular el carrito
-import { createPedido } from '../api/datos.api';
-import axios from 'axios';
+import { createPedido, getCarrito } from '../api/datos.api';
 
 export function Envio() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { clearCart } = useCart(); // Función para vaciar el carrito
+    const { clearCart, removeFromCart } = useCart(); // Obtenemos removeFromCart del contexto
 
     // Recuperar datos del localStorage si no hay state
     const savedClientInfo = localStorage.getItem('clientInfo');
@@ -131,93 +130,141 @@ export function Envio() {
                             }
 
                             // Obtener usuario del localStorage
-                            const usuario = JSON.parse(localStorage.getItem('usuario'));
+                            const usuarioStr = localStorage.getItem('usuario');
+                            if (!usuarioStr) {
+                                throw new Error('No hay usuario autenticado');
+                            }
+                            const usuario = JSON.parse(usuarioStr);
 
                             // Crear un ID de pedido único
                             const pedidoId = Date.now().toString();
 
-                            // Crear un registro por cada producto en el carrito
-                            const pedidosPromises = resumen.map(async (item) => {
-                                // Calcular el envío proporcional para cada producto
-                                const envioProporcional = selectedShipping / resumen.length;
-                                
-                                const pedidoData = {
-                                    usuario_id: usuario?.id || null,
-                                    company: formData.company || '',
-                                    direccion: formData.address,
-                                    pais: formData.country,
-                                    estado_pais: formData.state,
-                                    ciudad: formData.city,
-                                    zip: formData.zip,
-                                    correo: formData.email,
-                                    telefono: formData.phone || '',
-                                    estado_compra: 'Pagado',
-                                    desc_adicional: item.descripcion || '',
-                                    producto: item.id,
-                                    cantidad_prod: item.cantidad,
-                                    subtotal: (item.precio * item.cantidad).toFixed(2),
-                                    isv: ((item.precio * item.cantidad) * 0.15).toFixed(2),
-                                    envio: envioProporcional.toFixed(2),  // Envío proporcional
-                                    total: (
-                                        (item.precio * item.cantidad) + 
-                                        ((item.precio * item.cantidad) * 0.15) + 
-                                        envioProporcional
-                                    ).toFixed(2),
-                                    fecha_compra: new Date().toISOString().split('T')[0],
-                                    fecha_entrega: new Date().toISOString().split('T')[0],
-                                    es_movimiento_interno: false,
-                                    id_pedido: pedidoId, // Agregar el ID de pedido único
-                                };
+                            // Calcular el envío proporcional para cada producto
+                            const envioProporcional = selectedShipping / resumen.length;
                             
-                                // Convertir pedidoData a FormData
-                                const formDataToSend = new FormData();
-                                for (const key in pedidoData) {
-                                    if (pedidoData[key] !== null && pedidoData[key] !== undefined) {
-                                        // Asegurarse de que envio se envía como string
-                                        if (key === 'envio') {
-                                            formDataToSend.append(key, pedidoData[key].toString());
-                                        } else {
-                                            formDataToSend.append(key, pedidoData[key]);
+                            // Obtener los datos del formulario
+                            const clientInfo = JSON.parse(localStorage.getItem('clientInfo') || '{}');
+                            
+                            // Crear objeto de pedido
+                            const pedidoData = {
+                                usuario_id: usuario.id,
+                                company: clientInfo.company || '',
+                                direccion: clientInfo.address || '',
+                                pais: clientInfo.country || '',
+                                estado_pais: clientInfo.state || '',
+                                ciudad: clientInfo.city || '',
+                                zip: clientInfo.zip || '',
+                                correo: clientInfo.email || '',
+                                telefono: clientInfo.phone || '',
+                                estado_compra: 'Pagado',
+                                desc_adicional: resumen[0]?.descripcion || '',
+                                fecha_compra: new Date().toISOString().split('T')[0],
+                                fecha_entrega: new Date().toISOString().split('T')[0],
+                                es_movimiento_interno: false,
+                                id_pedido: pedidoId,
+                                productos: resumen.map(item => {
+                                    // Asegurarnos de que el ID del producto sea válido
+                                    if (!item.id) {
+                                        throw new Error(`El producto ${item.nombre} no tiene un ID válido`);
+                                    }
+                                    return {
+                                        producto_id: item.id.id, // Este es el ID que viene del carrito (item.producto)
+                                        cantidad: item.cantidad,
+                                        precio: parseFloat(item.precio),
+                                        subtotal: (parseFloat(item.precio) * item.cantidad).toFixed(2),
+                                        isv: (parseFloat(item.precio) * item.cantidad * 0.15).toFixed(2),
+                                        envio: envioProporcional.toFixed(2),
+                                        total: (
+                                            (parseFloat(item.precio) * item.cantidad) + 
+                                            (parseFloat(item.precio) * item.cantidad * 0.15) + 
+                                            envioProporcional
+                                        ).toFixed(2)
+                                    };
+                                })
+                            }; // Fin del objeto pedidoData
+
+                            // Debug: Verificar datos antes de enviar a createPedido
+                            console.log('Datos del pedido a enviar a createPedido:', pedidoData);
+
+                            // Intentar crear el pedido después del pago exitoso
+                            try {
+                                const response = await createPedido(pedidoData);
+                                console.log('Respuesta del servidor:', response);
+
+                                // Limpiar datos del localStorage
+                                localStorage.removeItem('clientInfo');
+
+                                // Eliminar cada producto del carrito individualmente para devolverlos al stock
+                                try {
+                                    // Obtener el carrito actual
+                                    const carritoActual = await getCarrito();
+                                    
+                                    // Eliminar cada producto del carrito
+                                    for (const item of carritoActual) {
+                                        try {
+                                            await removeFromCart(item.id);
+                                            console.log(`Producto ${item.producto_nombre} eliminado del carrito y devuelto al stock`);
+                                        } catch (error) {
+                                            console.error(`Error al eliminar producto ${item.producto_nombre} del carrito:`, error);
                                         }
                                     }
-                                }
-                            
-                                try {
-                                    const response = await createPedido(formDataToSend);
-                                    console.log('Respuesta del servidor:', response);
-                                    return response;
+                                    
+                                    console.log('Carrito limpiado exitosamente y productos devueltos al stock');
                                 } catch (error) {
-                                    console.error('Error al crear pedido:', error.response?.data || error);
-                                    throw error;
+                                    console.error('Error al limpiar el carrito:', error);
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Advertencia',
+                                        text: 'El pedido se realizó correctamente, pero hubo un problema al actualizar el stock. Por favor, contacte al administrador.',
+                                    });
                                 }
-                            });
 
-                            // Esperar a que todos los pedidos se creen
-                            await Promise.all(pedidosPromises);
+                                Swal.fire({
+                                    title: '¡Pedido registrado!',
+                                    html: `
+                                        <div class="text-start">
+                                            <p><strong>ID del Pedido:</strong> ${pedidoId}</p>
+                                            <p><strong>Cliente:</strong> ${clientInfo.firstName} ${clientInfo.lastName}</p>
+                                            <p><strong>Dirección:</strong> ${clientInfo.address}</p>
+                                            <p><strong>Ciudad:</strong> ${clientInfo.city}</p>
+                                            <p><strong>País:</strong> ${clientInfo.country}</p>
+                                            <p><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</p>
+                                            <p><strong>ISV:</strong> $${isv.toFixed(2)}</p>
+                                            <p><strong>Envío:</strong> $${selectedShipping.toFixed(2)}</p>
+                                            <p><strong>Total:</strong> $${total.toFixed(2)}</p>
+                                        </div>
+                                    `,
+                                    icon: 'success'
+                                }).then(() => {
+                                    navigate('/');
+                                });
+                            } catch (error) {
+                                console.error('Error al crear el pedido:', error);
+                                let errorMessage = 'Error al crear el pedido';
+                                let errorDetails = '';
 
-                            // Limpiar datos del localStorage
-                            localStorage.removeItem('clientInfo');
+                                if (error.response?.data) {
+                                    if (typeof error.response.data === 'object') {
+                                        errorDetails = Object.entries(error.response.data)
+                                            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+                                            .join('\n');
+                                    } else {
+                                        errorDetails = error.response.data;
+                                }
+                                }
 
-                            Swal.fire({
-                                title: '¡Pedido registrado!',
-                                html: `
-                                    <div class="text-start">
-                                        <p><strong>ID del Pedido:</strong> ${pedidoId}</p>
-                                        <p><strong>Cliente:</strong> ${formData.firstName} ${formData.lastName}</p>
-                                        <p><strong>Dirección:</strong> ${formData.address}</p>
-                                        <p><strong>Ciudad:</strong> ${formData.city}</p>
-                                        <p><strong>País:</strong> ${formData.country}</p>
-                                        <p><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</p>
-                                        <p><strong>ISV:</strong> $${isv.toFixed(2)}</p>
-                                        <p><strong>Envío:</strong> $${selectedShipping.toFixed(2)}</p>
-                                        <p><strong>Total:</strong> $${total.toFixed(2)}</p>
-                                    </div>
-                                `,
-                                icon: 'success'
-                            }).then(() => {
-                                clearCart();
-                                navigate('/');
-                            });
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: errorMessage,
+                                    html: `
+                                        <div class="text-start">
+                                            <p>${errorDetails || 'Ocurrió un error inesperado al procesar la solicitud'}</p>
+                                            <p class="mt-3">Por favor, verifica que todos los datos del pedido sean correctos e intenta nuevamente.</p>
+                                        </div>
+                                    `,
+                                    confirmButtonText: 'Entendido'
+                                });
+                            }
                         } catch (error) {
                             console.error('Error en el proceso de pago:', error);
                             let errorMessage = 'Hubo un error al procesar el pago. No se ha realizado ningún cobro.';

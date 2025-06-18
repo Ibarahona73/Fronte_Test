@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProducto, updateProductoStock } from '../api/datos.api'; // Funciones para obtener y actualizar producto
+import { getProducto, addProductoStock } from '../api/datos.api'; // Funciones para obtener y actualizar producto
 import Swal from 'sweetalert2';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -47,7 +47,7 @@ export function EntradaStock() {
             const nuevoStock = producto.cantidad_en_stock + cantidad;
 
             // Actualizar el stock en la base de datos 
-            await updateProductoStock(id, cantidad);
+            await addProductoStock(id, cantidad);
 
             // Mostrar mensaje de éxito
             Swal.fire({

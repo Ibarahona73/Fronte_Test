@@ -1,81 +1,157 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useCart } from '../components/CartContext';
 import { useNavigate } from 'react-router-dom';
-import { updateProductoStock, addProductoStock } from '../api/datos.api'; // Importa las funciones para actualizar el stock
 import Swal from 'sweetalert2';
 import { useAuth } from '../components/AuthenticationContext';
 
 export function Carrito() {
-    // Obtiene el carrito, total, funciones y stock del contexto
-    const { cart, cartTotal, removeFromCart, updateCartQuantity, stock } = useCart();
+    const { cart, cartTotal, removeFromCart, updateCartQuantity, loading, refreshCart } = useCart();
     const navigate = useNavigate();
     const { user } = useAuth();
+
+    // Verificar stock al cargar el carrito
+    useEffect(() => {
+        const verificarStock = async () => {
+            if (cart.length > 0) {
+                try {
+                    const itemsConStockInvalido = cart.filter(item => 
+                        item.cantidad_prod > item.stock_disponible,
+                        
+                        
+                    );
+                    if (itemsConStockInvalido.length > 0) {
+                        // Actualizar cantidades para cada item con stock inválido
+                        for (const item of itemsConStockInvalido) {
+                            try {
+                                await updateCartQuantity(item.id, item.stock_disponible);
+                                
+                            } catch (error) {
+                                console.error(`Error al actualizar cantidad del producto ${item.producto_nombre}:`, error);
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock actualizado',
+                            text: 'Algunos productos han sido actualizados debido a cambios en el stock disponible.',
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error al verificar stock:', error);
+                }
+            }
+        };
+
+        verificarStock();
+    }, [cart]);
 
     const formatPrice = (price) => {
         const priceNumber = Number(price);
         return isNaN(priceNumber) ? '0.00' : priceNumber.toFixed(2);
     };
 
-    // Maneja el cambio de cantidad de un producto en el carrito
-    const handleQuantityChange = async (id, newQuantity, oldQuantity) => {
+    const handleQuantityChange = async (id, newQuantity) => {
         try {
-            const currentItem = cart.find(item => item.id === id);
-            if (!currentItem) return;
+            console.log('=== INICIO handleQuantityChange ===');
+            console.log('Parámetros recibidos:', { id, newQuantity });
 
-            const availableStock = stock[id] || currentItem.cantidad_en_stock;
+            // Encontrar el item en el carrito
+            const item = cart.find(item => item.id === id);
+            if (!item) {
+                throw new Error('Producto no encontrado en el carrito');
+            }
+
+            console.log('Item encontrado en carrito:', {
+                id: item.id,
+                cantidad_actual: item.cantidad_prod,
+                stock_disponible: item.stock_disponible
+            });
+
+            // Verificar que la nueva cantidad sea válida
+            if (newQuantity < 1) {
+
+                //poner swal
+                console.log('Cantidad menor a 1, eliminando producto');
+                // Si la cantidad es menor a 1, eliminamos el producto
+                await handleRemoveFromCart(id);
+                return;
+            }
+
+            // Verificar stock disponible solo si estamos aumentando la cantidad
+            // if (newQuantity > item.cantidad_prod) {
+            //     const stockNecesario = newQuantity - item.cantidad_prod;
+            //     console.log('New Verificación de stock:', {
+            //         newQuantity,
+            //         stock_necesario: stockNecesario,
+            //         stock_disponible: item.stock_disponible
+            //     });
+
+            //     if (stockNecesario > item.stock_disponible) {
+            //         Swal.fire({
+            //             icon: 'warning',
+            //             title: 'Stock insuficiente',
+            //             text: `Solo hay ${item.stock_disponible} unidades disponibles.`,
+            //             timer: 2000,
+            //             showConfirmButton: false
+            //         });
+            //         return;
+            //     }
+            // }
+
+            console.log('Llamando a updateCartQuantity');
+            // Actualizar la cantidad
+            await updateCartQuantity(id, newQuantity);
+
+            // Mostrar mensaje de éxito
+            Swal.fire({
+                icon: 'success',
+                title: 'Cantidad actualizada',
+                text: 'La cantidad ha sido actualizada correctamente',
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            console.log('=== FIN handleQuantityChange ===');
+        } catch (error) {
+            console.error('Error en handleQuantityChange:', {
+                message: error.message,
+                stack: error.stack
+            });
             
-            // Validar la nueva cantidad
-            if (newQuantity < 1 || newQuantity > availableStock) {
+            // Si el producto ya no está disponible, eliminarlo del carrito
+            if (error.message.includes('ya no está disponible')) {
+                await handleRemoveFromCart(id);
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Cantidad no válida',
-                    text: `La cantidad debe estar entre 1 y ${availableStock}`,
+                    title: 'Producto no disponible',
+                    text: 'El producto ha sido removido del carrito porque ya no está disponible.',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
                 return;
             }
 
-            const difference = newQuantity - oldQuantity;
-
-            if (difference > 0) {
-                // Si se aumenta la cantidad, reduce el stock en la base de datos
-                await updateProductoStock(id, -difference);
-            } else if (difference < 0) {
-                // Si se reduce la cantidad, aumenta el stock en la base de datos
-                await addProductoStock(id, Math.abs(difference));
-            }
-
-            // Actualiza la cantidad en el carrito
-            await updateCartQuantity(id, newQuantity);
-        } catch (error) {
-            console.error('Error al actualizar cantidad:', error);
+            // Para otros errores
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo actualizar la cantidad. Por favor intenta nuevamente.',
+                text: error.message || 'No se pudo actualizar la cantidad del producto',
+                timer: 2000,
+                showConfirmButton: false
             });
         }
     };
 
-    // Maneja la eliminación de un producto del carrito
-    const handleRemoveFromCart = async (id, quantity) => {
+    const handleRemoveFromCart = async (id) => {
         try {
-            // Restaura el stock en la base de datos
-            await addProductoStock(id, quantity);
-
-            // Elimina el producto del carrito
-            removeFromCart(id);
+            await removeFromCart(id);
         } catch (error) {
-            // Muestra error si falla la restauración
-            console.error('Error al restablecer el stock del producto:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Hubo un error al restablecer el stock del producto.',
-            });
+            // El error ya se maneja en removeFromCart, no es necesario hacer nada aquí
+            // Solo lo dejamos para mantener la compatibilidad con el código existente
         }
     };
 
-    const handleProceedToCheckout = () => {
+    const handleProceedToCheckout = async () => {
         if (!user) {
             Swal.fire({
                 icon: 'warning',
@@ -84,7 +160,6 @@ export function Carrito() {
                 confirmButtonText: 'Ir a iniciar sesión'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Guarda la ruta actual en localStorage para redirigir después del login
                     localStorage.setItem('redirectAfterLogin', '/carrito');
                     navigate('/login');
                 }
@@ -92,16 +167,35 @@ export function Carrito() {
             return;
         }
 
-        const productsWithInvalidPrice = cart.filter(item => {
-            const price = Number(item.precio);
-            return isNaN(price) || price <= 0;
-        });
+        // Verificar stock antes de proceder al pago
+        const itemsConStockInvalido = cart.filter(item => 
+            item.cantidad_prod > item.stock_disponible            
+            
+        );
+        
 
-        if (productsWithInvalidPrice.length > 0) {
+        if (itemsConStockInvalido.length > 0) {
+            // Actualizar cantidades para cada item con stock inválido
+            for (const item of itemsConStockInvalido) {
+                await updateCartQuantity(item.id, item.stock_disponible);
+            }
+
+            await refreshCart(); // Recargar el carrito para obtener los datos actualizados
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stock actualizado',
+                text: 'Algunos productos han sido actualizados debido a cambios en el stock disponible. Por favor, revisa tu carrito antes de continuar.',
+            });
+            return;
+        }
+
+        // Verificar si hay productos en el carrito
+        if (cart.length === 0) {
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: 'Algunos productos tienen precios inválidos.',
+                title: 'Carrito vacío',
+                text: 'No puedes proceder al pago con un carrito vacío.',
             });
             return;
         }
@@ -112,15 +206,20 @@ export function Carrito() {
                 isv: cartTotal * 0.15,
                 total: cartTotal * 1.15,
                 resumen: cart.map(item => ({
-                    id: item.id,
-                    nombre: item.nombre,
-                    cantidad: item.quantity,
-                    precio: Number(item.precio),
-                    image: item.image
+                    id: item.producto,
+                    nombre: item.producto_nombre,
+                    cantidad: item.cantidad_prod,
+                    precio: Number(item.producto_precio),
+                    image: item.producto?.image,
+                    descripcion: item.producto?.descripcion || ''
                 })),
             }
         });
     };
+
+    if (loading) {
+        return <div className="container mt-4">Cargando carrito...</div>;
+    }
 
     return (
         <div className="container mt-4">
@@ -139,71 +238,70 @@ export function Carrito() {
             ) : (
                 <div className="row">
                     <div className="col-md-8">
-                        {cart.map((item, index) => {
-                            const availableStock = stock[item.id] || item.cantidad_en_stock;
-                            
-                            return (
-                                <div key={index} className="card mb-3">
-                                    <div className="row g-0">
-                                        <div className="col-md-3">
-                                            <img
-                                                src={item.image
-                                                    ? `data:image/jpeg;base64,${item.image}`
-                                                    : 'https://via.placeholder.com/150'}
-                                                className="img-fluid rounded-start"
-                                                alt={item.nombre}
-                                                style={{ height: '150px', objectFit: 'cover' }}
-                                            />
-                                        </div>
-                                        <div className="col-md-9">
-                                            <div className="card-body">
-                                                <h5 className="card-title">{item.nombre}</h5>
-                                                <p className="card-text text-muted">
-                                                    {item.descripcion || 'Sin descripción'}
-                                                </p>
-                                                <div className="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <p className="mb-0">
-                                                            <strong>Precio:</strong> ${formatPrice(item.precio)}
-                                                        </p>
-                                                        <p className="mb-0">
-                                                            <strong>Stock disponible:</strong> {availableStock}
-                                                        </p>
-                                                    </div>
-                                                    <div className="d-flex align-items-center">
-                                                        <button
-                                                            className="btn btn-outline-secondary"
-                                                            onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.quantity)}
-                                                            disabled={item.quantity <= 1}
-                                                        >
-                                                            -
-                                                        </button>
-                                                        <span className="mx-3">{item.quantity}</span>
-                                                        <button
-                                                            className="btn btn-outline-secondary"
-                                                            onClick={() => handleQuantityChange(
-                                                                item.id,
-                                                                Math.min(item.quantity + 1, availableStock),
-                                                                item.quantity
-                                                            )}
-                                                            disabled={item.quantity >= availableStock}
-                                                        >
-                                                            +
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-danger ms-3"
-                                                            onClick={() => handleRemoveFromCart(item.id, item.quantity)}
-                                                        >
-                                                            <i className="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
+                        {cart.map((item) => (
+                            <div key={item.id} className="card mb-3">
+                                <div className="row g-0">
+                                    <div className="col-md-3">
+                                        {console.log('Datos del producto:', item.producto)}
+                                        <img
+                                            src={item.producto?.image 
+                                                ? `data:image/jpeg;base64,${item.producto.image}`
+                                                : 'https://via.placeholder.com/150'}
+                                            className="img-fluid rounded-start"
+                                            alt={item.producto_nombre}
+                                            style={{ height: '150px', objectFit: 'cover' }}
+                                            onError={(e) => {
+                                                console.error('Error al cargar la imagen:', e);
+                                                console.log('Datos del item con error:', item);
+                                                e.target.src = 'https://via.placeholder.com/150';
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="col-md-9">
+                                        <div className="card-body">
+                                            <h5 className="card-title">{item.producto_nombre}</h5>
+                                            <div className="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <p className="mb-0">
+                                                        <strong>Precio:</strong> ${formatPrice(item.producto_precio)}
+                                                    </p>
+                                                    <p className="mb-0">
+                                                        <strong>Stock del Inventario:</strong> {item.stock_disponible}
+                                                        {console.log('Datos del stock disp:', item.stock_disponible)}
+                                                    </p>
+                                                    <p className="mb-0">
+                                                        <strong>Stock disponible para añadir:</strong> {item.stock_Frontend}
+                                                    </p>
+                                                </div>
+                                                <div className="d-flex align-items-center">
+                                                    <button
+                                                        className="btn btn-outline-secondary"
+                                                        onClick={() => handleQuantityChange(item.id, item.cantidad_prod - 1)}
+                                                        disabled={item.cantidad_prod <= 1}
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className="mx-3">{item.cantidad_prod}</span>
+                                                    <button
+                                                        className="btn btn-outline-secondary"
+                                                        onClick={() => handleQuantityChange(item.id, item.cantidad_prod + 1)}
+                                                        disabled={item.cantidad_prod >= item.stock_disponible}
+                                                    >
+                                                        +
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-danger ms-3"
+                                                        onClick={() => handleRemoveFromCart(item.id)}
+                                                    >
+                                                        <i className="bi bi-trash"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        ))}
                     </div>
 
                     <div className="col-md-4">

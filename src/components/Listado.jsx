@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from "react";
 import React from 'react';
+import { useCart } from './CartContext'; // Importamos useCart
+import Swal from 'sweetalert2'; // Importamos Swal para mensajes de alerta
 
 // Componente para mostrar el listado de productos en inventario con filtros y acciones
 export function Listado() {
@@ -18,19 +20,34 @@ export function Listado() {
     });
 
     const navigate = useNavigate();
+    const cart = useCart(); // Obtenemos el estado del carrito
+    const { addToCart } = useCart(); // Obtenemos la función addToCart
 
     // Cargar productos al montar el componente
     useEffect(() => {
         async function cargaProductos() {
             try {
                 const res = await getProductos();
-                // Agrega la imagen en base64 si existe
-                const productosConImagenes = res.map(producto => ({
-                    ...producto,
-                    imagen: producto.image
-                        ? `data:image/jpeg;base64,${producto.image}`
-                        : null,
-                }));
+                // Agrega la imagen en base64 si existe y calcula el stock_Frontend inicial
+                
+                const productosConImagenes = res.map(producto => {
+                    // Encuentra si el producto ya está en el carrito
+                    console.log('carrito',cart)
+                    //console.log('Producto',itemEnCarrito)    
+
+                    //const itemEnCarrito = cart.find(item => item.producto.id === producto.id);                                     
+                    //const cantidadEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad_prod : 0;
+
+
+                    return {
+                        ...producto,
+                        imagen: producto.image
+                            ? `data:image/jpeg;base64,${producto.image}`
+                            : null,
+                        //stock_Frontend: producto.stock_disponible - cantidadEnCarrito, // stock_Frontend es el stock real - lo que ya está en el carrito
+                    };
+                    
+                });                
                 setProductos(productosConImagenes);
                 setFilteredProductos(productosConImagenes);
             } catch (error) {
@@ -61,6 +78,61 @@ export function Listado() {
 
         setFilteredProductos(result);
     }, [filters, productos]);
+
+    // Sincronizar stock_Frontend cuando cambia el carrito
+    useEffect(() => {
+        if (productos.length > 0 && cart.length > 0) {
+            setProductos(prevProductos =>
+                prevProductos.map(producto => {
+                    const itemEnCarrito = cart.find(item => item.producto.id === producto.id);
+                    const cantidadEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad_prod : 0;
+                    return {
+                        ...producto,
+                        stock_Frontend: producto.stock_disponible - cantidadEnCarrito,
+                    };
+                })
+            );
+            setFilteredProductos(prevFilteredProductos =>
+                prevFilteredProductos.map(producto => {
+                    const itemEnCarrito = cart.find(item => item.producto.id === producto.id);
+                    const cantidadEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad_prod : 0;
+                    return {
+                        ...producto,
+                        stock_Frontend: producto.stock_disponible - cantidadEnCarrito,
+                    };
+                })
+            );
+        }
+    }, [cart, productos]); // Depende de cart y productos para re-calcular
+
+    const handleAddToCart = async (product) => {
+        if (product.stock_Frontend <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stock Insuficiente',
+                text: 'No hay más unidades disponibles de este producto.',
+            });
+            return;
+        }
+
+        try {
+            await addToCart(product, 1); // Añadir 1 unidad al carrito
+            Swal.fire({
+                icon: 'success',
+                title: 'Producto Añadido',
+                text: `${product.nombre} ha sido añadido a tu carrito.`, 
+                timer: 1500,
+                showConfirmButton: false,
+            });
+        } catch (error) {
+            console.error('Error al añadir al carrito:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'No se pudo añadir el producto al carrito. Por favor, intenta nuevamente.',
+            });
+        }
+    };
 
     if (loading) return <div>Cargando productos...</div>;
     if (error) return <div style={{ color: 'red' }}>{error}</div>;
@@ -256,13 +328,9 @@ export function Listado() {
                             ${Number(producto.precio).toFixed(2)}
                         </small>
 
-                        {/* Estado del stock */}
-                        <small
-                            className={`d-block mb-2 ${
-                                producto.cantidad_en_stock > 0 ? 'text-success' : 'text-danger'
-                            }`}
-                        >
-                            {producto.cantidad_en_stock > 0 ? 'In Stock' : 'Out of Stock'}
+                        {/* Stock Disponible */}
+                        <small className="text-muted d-block mb-2">
+                            Stock Disponible: {producto.stock_Frontend}
                         </small>
 
                         {/* Botones de acción */}
@@ -291,6 +359,14 @@ export function Listado() {
                                 >
                                     Rellenar Stock
                                 </button>
+
+                            <button
+                                className="btn btn-primary mt-3"
+                                onClick={() => handleAddToCart(producto)}
+                                disabled={producto.stock_Frontend <= 0} // Deshabilitar si no hay stock_Frontend
+                            >
+                                Añadir al Carrito
+                            </button>
                         </div>
                     </div>
                 ))}
