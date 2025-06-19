@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getCarrito, addToCarrito, updateCarritoItem, removeFromCarrito, verificarCarrito, limpiarCarrito } from '../api/datos.api';
 import Swal from 'sweetalert2';
+import { useStockRealtimeUpdater } from '../hooks/useStockRealtimeUpdater';
 
 // Crear el contexto del carrito
 const CartContext = createContext();
@@ -26,6 +27,10 @@ export function CartProvider({ children }) {
             return () => clearTimeout(timer); // Limpiar el timer si el componente se desmonta
         }
     }, [cart]);
+
+    useStockRealtimeUpdater(() => {
+        loadCart();
+    });
 
     const loadCart = async () => {
         try {

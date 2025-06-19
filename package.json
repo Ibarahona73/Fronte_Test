@@ -12,6 +12,7 @@
   "dependencies": {
     "@paypal/react-paypal-js": "^8.8.3",
     "@popperjs/core": "^2.11.8",
+    "ably": "^2.9.0",
     "axios": "^1.9.0",
     "bootstrap": "^5.3.6",
     "bootstrap-icons": "^1.12.1",

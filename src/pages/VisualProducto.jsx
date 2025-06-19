@@ -4,6 +4,7 @@ import { getProducto, getProductos } from '../api/datos.api';
 import { Navigation } from '../components/Navigation';
 import { useCart } from '../components/CartContext';
 import Swal from 'sweetalert2';
+import { useStockRealtimeUpdater } from '../hooks/useStockRealtimeUpdater';
 
 export function VisualProducto() {
     const { id } = useParams();
@@ -58,7 +59,11 @@ export function VisualProducto() {
         fetchProducto();
     }, [id]);
 
-    
+    useStockRealtimeUpdater((producto_id, nuevo_stock) => {
+        if (producto && producto.id === producto_id) {
+            setStockVisible(nuevo_stock);
+        }
+    });
 
     useEffect(() => {
         async function fetchProductosRelacionados() {
