@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import React from 'react';
 import { useCart } from './CartContext'; // Importamos useCart
 import Swal from 'sweetalert2'; // Importamos Swal para mensajes de alerta
-import { useStockRealtimeUpdater } from '../components/useStockRealtimeUpdater';
 
 // Componente para mostrar el listado de productos en inventario con filtros y acciones
 export function Listado() {
@@ -105,23 +104,6 @@ export function Listado() {
             );
         }
     }, [cart, productos]); // Depende de cart y productos para re-calcular
-
-    useStockRealtimeUpdater((producto_id, nuevo_stock) => {
-        setProductos(prev =>
-            prev.map(prod =>
-                prod.id === producto_id
-                    ? { ...prod, stock_Frontend: nuevo_stock }
-                    : prod
-            )
-        );
-        setFilteredProductos(prev =>
-            prev.map(prod =>
-                prod.id === producto_id
-                    ? { ...prod, stock_Frontend: nuevo_stock }
-                    : prod
-            )
-        );
-    });
 
     const handleAddToCart = async (product) => {
         if (product.stock_Frontend <= 0) {

@@ -4,7 +4,6 @@ import { PayPalButtons } from '@paypal/react-paypal-js';
 import Swal from 'sweetalert2';
 import { useCart } from '../components/CartContext'; // Hook para manipular el carrito
 import { createPedido, getCarrito } from '../api/datos.api';
-import { useStockRealtimeUpdater } from '../components/useStockRealtimeUpdater';
 
 export function Envio() {
     const location = useLocation();
@@ -56,14 +55,6 @@ export function Envio() {
         const selectedCost = parseFloat(e.target.value);
         setSelectedShipping(selectedCost);
     };
-
-    useStockRealtimeUpdater((producto_id, nuevo_stock) => {
-        Swal.fire({
-            icon: 'info',
-            title: 'Stock actualizado',
-            text: `El producto con ID ${producto_id} tiene ahora ${nuevo_stock} unidades en stock. Si tu pedido depende de este producto, revisa tu carrito antes de continuar.`
-        });
-    });
 
     return (
         <div className="container mt-4">
