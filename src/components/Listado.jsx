@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import React from 'react';
 import { useCart } from './CartContext'; // Importamos useCart
 import Swal from 'sweetalert2'; // Importamos Swal para mensajes de alerta
-import { useStockRealtimeUpdater } from '../hooks/useStockRealtimeUpdater';
+import { useStockRealtimeUpdater } from '../components/useStockRealtimeUpdater';
 
 // Componente para mostrar el listado de productos en inventario con filtros y acciones
 export function Listado() {

@@ -4,7 +4,7 @@ import { PayPalButtons } from '@paypal/react-paypal-js';
 import Swal from 'sweetalert2';
 import { useCart } from '../components/CartContext'; // Hook para manipular el carrito
 import { createPedido, getCarrito } from '../api/datos.api';
-import { useStockRealtimeUpdater } from '../hooks/useStockRealtimeUpdater';
+import { useStockRealtimeUpdater } from '../components/useStockRealtimeUpdater';
 
 export function Envio() {
     const location = useLocation();
