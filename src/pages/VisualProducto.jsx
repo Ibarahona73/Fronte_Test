@@ -16,22 +16,49 @@ export function VisualProducto() {
     const [cantidad, setCantidad] = useState(1);
     const [showCartPopup, setShowCartPopup] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [stockVisible, setStockVisible] = useState(0);
+    const [loadingStock, setLoadingStock] = useState(true);
 
     useEffect(() => {
         async function fetchProducto() {
             try {
                 const data = await getProducto(id);
                 setProducto(data);
+                
+                // Llamar a la API para obtener el stock visible
+                const stockResponse = await fetch(`https://tiendaonline-backend-yaoo.onrender.com/stockvisible/${id}/`);
+                
+                // Verificar si la respuesta es JSON
+                const contentType = stockResponse.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const text = await stockResponse.text();
+                    console.error('Respuesta no JSON:', text.substring(0, 100));
+                    throw new Error('La API no devolvió una respuesta JSON válida');
+                }
+                
+                if (!stockResponse.ok) {
+                    throw new Error(`Error HTTP: ${stockResponse.status}`);
+                }
+                
+                const stockData = await stockResponse.json();
+                setStockVisible(stockData);
             } catch (err) {
-                console.error('Error fetching producto:', err);
+                console.error('Error al obtener producto o stock:', err);
                 setError('Error al cargar el producto');
+                // Usar el stock normal como fallback si hay error
+                if (producto) {
+                    setStockVisible(producto.cantidad_en_stock || 0);
+                }
             } finally {
                 setLoading(false);
+                setLoadingStock(false);
             }
         }
 
         fetchProducto();
     }, [id]);
+
+    
 
     useEffect(() => {
         async function fetchProductosRelacionados() {
@@ -125,34 +152,38 @@ export function VisualProducto() {
                         ${producto.precio ? Number(producto.precio).toFixed(2) : '0.00'}
                     </h2>
                     <p>{producto.descripcion || 'No hay descripción disponible.'}</p>
-                    <p><strong>Stock disponible:</strong> {producto.cantidad_en_stock > 0 ? producto.cantidad_en_stock : 'Agotado'}</p>
+                    {loadingStock ? (
+                        <p><strong>Stock disponible:</strong> Cargando...</p>
+                    ) : (
+                        <p><strong>Stock disponible:</strong> {stockVisible > 0 ? stockVisible : 'Agotado'}</p>
+                    )}
                     <input
                         type="number"
                         value={cantidad}
                         onChange={handleCantidadChange}
                         min="1"
-                        max={producto.cantidad_en_stock}
+                        max={stockVisible}
                         style={{
                             width: '60px',
                             padding: '5px',
                             border: '1px solid #ddd',
                             borderRadius: '5px',
                         }}
-                        disabled={producto.cantidad_en_stock === 0}
+                        disabled={stockVisible === 0 || loadingStock}
                     />
                     <button
                         onClick={handleAddToCart}
                         style={{
-                            backgroundColor: producto.cantidad_en_stock > 0 ? '#3498db' : '#ccc',
+                            backgroundColor: stockVisible > 0 ? '#3498db' : '#ccc',
                             color: '#fff',
                             padding: '10px 20px',
                             border: 'none',
                             borderRadius: '5px',
-                            cursor: producto.cantidad_en_stock > 0 ? 'pointer' : 'not-allowed',
+                            cursor: stockVisible > 0 ? 'pointer' : 'not-allowed',
                         }}
-                        disabled={producto.cantidad_en_stock === 0}
+                        disabled={stockVisible === 0 || loadingStock || isSubmitting}
                     >
-                        Añadir al carrito
+                        {isSubmitting ? 'Procesando...' : 'Añadir al carrito'}
                     </button>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCart } from '../components/CartContext';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -8,28 +8,75 @@ export function Carrito() {
     const { cart, cartTotal, removeFromCart, updateCartQuantity, loading, refreshCart } = useCart();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const [stockVisibleData, setStockVisibleData] = useState({});
+
+    // Función para obtener el stock visible desde la API
+    const fetchStockVisible = async (productoId) => {
+        try {
+            // Asegurarse de que productoId es un número
+            const id = Number(productoId);
+            if (isNaN(id)) {
+                console.error('ID de producto inválido:', productoId);
+                return null;
+            }
+
+            const response = await fetch(`https://tiendaonline-backend-yaoo.onrender.com/stockvisible/${id}/`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error(`Error fetching stock for product ${productoId}:`, error);
+            return null;
+        }
+    };
+
+    // Cargar stocks visibles al montar el componente
+    useEffect(() => {
+        const loadStockData = async () => {
+            if (cart.length > 0) {
+                try {
+                    const stockPromises = cart.map(item => 
+                        fetchStockVisible(item.producto?.id || item.producto)
+                    );
+                    const stockResults = await Promise.all(stockPromises);
+
+                    const stockData = {};
+                    cart.forEach((item, index) => {
+                        const productId = item.producto?.id || item.producto;
+                        stockData[productId] = stockResults[index] !== null ? 
+                            stockResults[index] : 
+                            item.stock_disponible;
+                    });
+                    setStockVisibleData(stockData);
+                } catch (error) {
+                    console.error('Error loading stock data:', error);
+                }
+            }
+        };
+
+        loadStockData();
+    }, [cart]);
 
     // Verificar stock al cargar el carrito
     useEffect(() => {
         const verificarStock = async () => {
-            if (cart.length > 0) {
+            if (cart.length > 0 && Object.keys(stockVisibleData).length > 0) {
                 try {
-                    const itemsConStockInvalido = cart.filter(item => 
-                        item.cantidad_prod > item.stock_disponible,
-                        
-                        
-                    );
+                    const itemsConStockInvalido = cart.filter(item => {
+                        const productId = item.producto?.id || item.producto;
+                        return item.cantidad_prod > (stockVisibleData[productId] || item.stock_disponible);
+                    });
+
                     if (itemsConStockInvalido.length > 0) {
-                        // Actualizar cantidades para cada item con stock inválido
                         for (const item of itemsConStockInvalido) {
-                            try {
-                                await updateCartQuantity(item.id, item.stock_disponible);
-                                
-                            } catch (error) {
-                                console.error(`Error al actualizar cantidad del producto ${item.producto_nombre}:`, error);
-                            }
+                            const productId = item.producto?.id || item.producto;
+                            const stockDisponible = stockVisibleData[productId] || item.stock_disponible;
+                            await updateCartQuantity(item.id, stockDisponible);
                         }
 
+                        await refreshCart();
                         Swal.fire({
                             icon: 'warning',
                             title: 'Stock actualizado',
@@ -43,7 +90,7 @@ export function Carrito() {
         };
 
         verificarStock();
-    }, [cart]);
+    }, [cart, stockVisibleData]);
 
     const formatPrice = (price) => {
         const priceNumber = Number(price);
@@ -52,57 +99,31 @@ export function Carrito() {
 
     const handleQuantityChange = async (id, newQuantity) => {
         try {
-            console.log('=== INICIO handleQuantityChange ===');
-            console.log('Parámetros recibidos:', { id, newQuantity });
-
-            // Encontrar el item en el carrito
             const item = cart.find(item => item.id === id);
             if (!item) {
                 throw new Error('Producto no encontrado en el carrito');
             }
 
-            console.log('Item encontrado en carrito:', {
-                id: item.id,
-                cantidad_actual: item.cantidad_prod,
-                stock_disponible: item.stock_disponible
-            });
-
-            // Verificar que la nueva cantidad sea válida
             if (newQuantity < 1) {
-
-                //poner swal
-                console.log('Cantidad menor a 1, eliminando producto');
-                // Si la cantidad es menor a 1, eliminamos el producto
                 await handleRemoveFromCart(id);
                 return;
             }
 
-            // Verificar stock disponible solo si estamos aumentando la cantidad
-            // if (newQuantity > item.cantidad_prod) {
-            //     const stockNecesario = newQuantity - item.cantidad_prod;
-            //     console.log('New Verificación de stock:', {
-            //         newQuantity,
-            //         stock_necesario: stockNecesario,
-            //         stock_disponible: item.stock_disponible
-            //     });
+            const productId = item.producto?.id || item.producto;
+            const stockDisponible = stockVisibleData[productId] || item.stock_disponible;
+            
+            if (newQuantity > stockDisponible) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: `Solo hay ${stockDisponible} unidades disponibles.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
 
-            //     if (stockNecesario > item.stock_disponible) {
-            //         Swal.fire({
-            //             icon: 'warning',
-            //             title: 'Stock insuficiente',
-            //             text: `Solo hay ${item.stock_disponible} unidades disponibles.`,
-            //             timer: 2000,
-            //             showConfirmButton: false
-            //         });
-            //         return;
-            //     }
-            // }
-
-            console.log('Llamando a updateCartQuantity');
-            // Actualizar la cantidad
             await updateCartQuantity(id, newQuantity);
-
-            // Mostrar mensaje de éxito
             Swal.fire({
                 icon: 'success',
                 title: 'Cantidad actualizada',
@@ -110,15 +131,9 @@ export function Carrito() {
                 timer: 1500,
                 showConfirmButton: false
             });
-
-            console.log('=== FIN handleQuantityChange ===');
         } catch (error) {
-            console.error('Error en handleQuantityChange:', {
-                message: error.message,
-                stack: error.stack
-            });
+            console.error('Error en handleQuantityChange:', error);
             
-            // Si el producto ya no está disponible, eliminarlo del carrito
             if (error.message.includes('ya no está disponible')) {
                 await handleRemoveFromCart(id);
                 Swal.fire({
@@ -131,7 +146,6 @@ export function Carrito() {
                 return;
             }
 
-            // Para otros errores
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -146,8 +160,7 @@ export function Carrito() {
         try {
             await removeFromCart(id);
         } catch (error) {
-            // El error ya se maneja en removeFromCart, no es necesario hacer nada aquí
-            // Solo lo dejamos para mantener la compatibilidad con el código existente
+            console.error('Error al eliminar del carrito:', error);
         }
     };
 
@@ -168,20 +181,19 @@ export function Carrito() {
         }
 
         // Verificar stock antes de proceder al pago
-        const itemsConStockInvalido = cart.filter(item => 
-            item.cantidad_prod > item.stock_disponible            
-            
-        );
-        
+        const itemsConStockInvalido = cart.filter(item => {
+            const productId = item.producto?.id || item.producto;
+            return item.cantidad_prod > (stockVisibleData[productId] || item.stock_disponible);
+        });
 
         if (itemsConStockInvalido.length > 0) {
-            // Actualizar cantidades para cada item con stock inválido
             for (const item of itemsConStockInvalido) {
-                await updateCartQuantity(item.id, item.stock_disponible);
+                const productId = item.producto?.id || item.producto;
+                const stockDisponible = stockVisibleData[productId] || item.stock_disponible;
+                await updateCartQuantity(item.id, stockDisponible);
             }
 
-            await refreshCart(); // Recargar el carrito para obtener los datos actualizados
-
+            await refreshCart();
             Swal.fire({
                 icon: 'warning',
                 title: 'Stock actualizado',
@@ -190,7 +202,6 @@ export function Carrito() {
             return;
         }
 
-        // Verificar si hay productos en el carrito
         if (cart.length === 0) {
             Swal.fire({
                 icon: 'error',
@@ -206,7 +217,7 @@ export function Carrito() {
                 isv: cartTotal * 0.15,
                 total: cartTotal * 1.15,
                 resumen: cart.map(item => ({
-                    id: item.producto,
+                    id: item.producto?.id || item.producto,
                     nombre: item.producto_nombre,
                     cantidad: item.cantidad_prod,
                     precio: Number(item.producto_precio),
@@ -238,70 +249,68 @@ export function Carrito() {
             ) : (
                 <div className="row">
                     <div className="col-md-8">
-                        {cart.map((item) => (
-                            <div key={item.id} className="card mb-3">
-                                <div className="row g-0">
-                                    <div className="col-md-3">
-                                        {console.log('Datos del producto:', item.producto)}
-                                        <img
-                                            src={item.producto?.image 
-                                                ? `data:image/jpeg;base64,${item.producto.image}`
-                                                : 'https://via.placeholder.com/150'}
-                                            className="img-fluid rounded-start"
-                                            alt={item.producto_nombre}
-                                            style={{ height: '150px', objectFit: 'cover' }}
-                                            onError={(e) => {
-                                                console.error('Error al cargar la imagen:', e);
-                                                console.log('Datos del item con error:', item);
-                                                e.target.src = 'https://via.placeholder.com/150';
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="col-md-9">
-                                        <div className="card-body">
-                                            <h5 className="card-title">{item.producto_nombre}</h5>
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <p className="mb-0">
-                                                        <strong>Precio:</strong> ${formatPrice(item.producto_precio)}
-                                                    </p>
-                                                    <p className="mb-0">
-                                                        <strong>Stock del Inventario:</strong> {item.stock_disponible}
-                                                        {console.log('Datos del stock disp:', item.stock_disponible)}
-                                                    </p>
-                                                    <p className="mb-0">
-                                                        <strong>Stock disponible para añadir:</strong> {item.stock_Frontend}
-                                                    </p>
-                                                </div>
-                                                <div className="d-flex align-items-center">
-                                                    <button
-                                                        className="btn btn-outline-secondary"
-                                                        onClick={() => handleQuantityChange(item.id, item.cantidad_prod - 1)}
-                                                        disabled={item.cantidad_prod <= 1}
-                                                    >
-                                                        -
-                                                    </button>
-                                                    <span className="mx-3">{item.cantidad_prod}</span>
-                                                    <button
-                                                        className="btn btn-outline-secondary"
-                                                        onClick={() => handleQuantityChange(item.id, item.cantidad_prod + 1)}
-                                                        disabled={item.cantidad_prod >= item.stock_disponible}
-                                                    >
-                                                        +
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-danger ms-3"
-                                                        onClick={() => handleRemoveFromCart(item.id)}
-                                                    >
-                                                        <i className="bi bi-trash"></i>
-                                                    </button>
+                        {cart.map((item) => {
+                            const productId = item.producto?.id || item.producto;
+                            const stockDisponible = stockVisibleData[productId] || item.stock_disponible;
+                            
+                            return (
+                                <div key={item.id} className="card mb-3">
+                                    <div className="row g-0">
+                                        <div className="col-md-3">
+                                            <img
+                                                src={item.producto?.image 
+                                                    ? `data:image/jpeg;base64,${item.producto.image}`
+                                                    : 'https://via.placeholder.com/150'}
+                                                className="img-fluid rounded-start"
+                                                alt={item.producto_nombre}
+                                                style={{ height: '150px', objectFit: 'cover' }}
+                                                onError={(e) => {
+                                                    e.target.src = 'https://via.placeholder.com/150';
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="col-md-9">
+                                            <div className="card-body">
+                                                <h5 className="card-title">{item.producto_nombre}</h5>
+                                                <div className="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <p className="mb-0">
+                                                            <strong>Precio:</strong> ${formatPrice(item.producto_precio)}
+                                                        </p>
+                                                        <p className="mb-0">
+                                                            <strong>Stock disponible:</strong> {stockDisponible}
+                                                        </p>
+                                                    </div>
+                                                    <div className="d-flex align-items-center">
+                                                        <button
+                                                            className="btn btn-outline-secondary"
+                                                            onClick={() => handleQuantityChange(item.id, item.cantidad_prod - 1)}
+                                                            disabled={item.cantidad_prod <= 1}
+                                                        >
+                                                            -
+                                                        </button>
+                                                        <span className="mx-3">{item.cantidad_prod}</span>
+                                                        <button
+                                                            className="btn btn-outline-secondary"
+                                                            onClick={() => handleQuantityChange(item.id, item.cantidad_prod + 1)}
+                                                            disabled={item.cantidad_prod >= stockDisponible}
+                                                        >
+                                                            +
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-danger ms-3"
+                                                            onClick={() => handleRemoveFromCart(item.id)}
+                                                        >
+                                                            <i className="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     <div className="col-md-4">

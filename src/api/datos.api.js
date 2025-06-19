@@ -502,7 +502,8 @@ export const getCarrito = async () => {
         const carritoConProductos = await Promise.all(
             carritoData.map(async (item) => {
                 try {
-                    const productoResponse = await getProducto(item.producto);
+                     const productoResponse = await getProducto(item.producto);
+                    //const productoResponse = await api.get(`/api/v1/carrito/`);
                     return {
                         ...item,
                         producto: productoResponse,

@@ -22,6 +22,11 @@ export function Envio() {
         formData: savedData || {},
     };
 
+    // Debug: Ver el resumen completo
+    console.log('Resumen completo recibido:', resumen);
+    console.log('Tipo de resumen:', typeof resumen);
+    console.log('Es array:', Array.isArray(resumen));
+
     // Opciones de envío disponibles
     const shippingOptions = [
         { id: 'ups_ground', label: 'UPS Ground', cost: 2.20 },
@@ -163,12 +168,19 @@ export function Envio() {
                                 es_movimiento_interno: false,
                                 id_pedido: pedidoId,
                                 productos: resumen.map(item => {
+                                    // Debug: Ver la estructura exacta del item
+                                    console.log('Item del resumen:', item);
+                                    console.log('Item.id:', item.id);
+                                    console.log('Tipo de item.id:', typeof item.id);
+                                    
                                     // Asegurarnos de que el ID del producto sea válido
                                     if (!item.id) {
+                                        console.error('Item sin ID:', item);
                                         throw new Error(`El producto ${item.nombre} no tiene un ID válido`);
                                     }
-                                    return {
-                                        producto_id: item.id.id, // Este es el ID que viene del carrito (item.producto)
+                                    
+                                    const productoData = {
+                                        producto_id: item.id, // El ID está directamente en item.id
                                         cantidad: item.cantidad,
                                         precio: parseFloat(item.precio),
                                         subtotal: (parseFloat(item.precio) * item.cantidad).toFixed(2),
@@ -180,6 +192,9 @@ export function Envio() {
                                             envioProporcional
                                         ).toFixed(2)
                                     };
+                                    
+                                    console.log('Producto data creado:', productoData);
+                                    return productoData;
                                 })
                             }; // Fin del objeto pedidoData
 
@@ -252,7 +267,7 @@ export function Envio() {
                                         errorDetails = error.response.data;
                                 }
                                 }
-
+                                //HOLAJFKJLKFDSFSDFJK
                                 Swal.fire({
                                     icon: 'error',
                                     title: errorMessage,
@@ -263,6 +278,18 @@ export function Envio() {
                                         </div>
                                     `,
                                     confirmButtonText: 'Entendido'
+                                }).then(async () => {
+                                    // Redirigir a carrito
+                                    navigate('/carrito');
+                                    // Limpiar el carrito (eliminar todos los productos)
+                                    try {
+                                        const carritoActual = await getCarrito();
+                                        for (const item of carritoActual) {
+                                            await removeFromCart(item.id);
+                                        }
+                                    } catch (e) {
+                                        console.error('Error al limpiar el carrito tras error en pedido:', e);
+                                    }
                                 });
                             }
                         } catch (error) {

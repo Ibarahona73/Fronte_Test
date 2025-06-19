@@ -12,6 +12,7 @@ export function ClientView() {
     const [filteredProductos, setFilteredProductos] = useState([]); // Productos filtrados
     const [loading, setLoading] = useState(true); // Estado de carga
     const [error, setError] = useState(null); // Estado de error
+    const [stockVisibleData, setStockVisibleData] = useState({});
     const [filters, setFilters] = useState({
         categoria: '',
         tamaño: '',
@@ -27,6 +28,21 @@ export function ClientView() {
         'XXL': 'XXL'
     };
 
+    const fetchStockVisible = async (productoId) => {
+        try {
+            const response = await fetch(`https://tiendaonline-backend-yaoo.onrender.com/stockvisible/${productoId}/`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error(`Error fetching stock for product ${productoId}:`, error);
+            return null; // Retornar null si hay error
+        }
+    };
+
+
     // Cargar productos al montar o cuando cambia el carrito
     useEffect(() => {
         let isMounted = true;
@@ -36,19 +52,35 @@ export function ClientView() {
                 const res = await getProductos();
                 if (!isMounted) return;
 
+                // Primero obtenemos todos los stocks visibles
+                const stockPromises = res.map(producto => 
+                    fetchStockVisible(producto.id)
+                );
+                const stockResults = await Promise.all(stockPromises);
+
+                // Creamos un objeto con los stocks visibles
+                const stockData = {};
+                res.forEach((producto, index) => {
+                    stockData[producto.id] = stockResults[index] !== null ? 
+                        stockResults[index] : 
+                        producto.cantidad_en_stock;
+                });
+                setStockVisibleData(stockData);
+
+                // Ahora procesamos los productos con el stock visible
                 const productosConImagenes = res.map(producto => {
-                    // Calcular el stock restante considerando los productos en el carrito
                     const productoEnCarrito = cart.find((item) => item.id === producto.id);
-                    //CONSULTA TABLA CARRITOTEMP PARA TENER LOS PROD O CANT DE PROD RESERVADOS,
-                    const stockRestante = producto.cantidad_en_stock - (productoEnCarrito?.quantity || 0);
+                    const stockVisible = stockData[producto.id] || producto.cantidad_en_stock;
+                    const stockRestante = stockVisible - (productoEnCarrito?.quantity || 0);
+                    console.log('stokdata',stockRestante)
 
                     return {
                         ...producto,
-                        tamaño: sizeMap[producto.tamaño] || producto.tamaño, // Normaliza el tamaño
+                        tamaño: sizeMap[producto.tamaño] || producto.tamaño,
                         imagen: producto.image 
                             ? `data:image/jpeg;base64,${producto.image}`
                             : null,
-                        cantidad_en_stock: stockRestante, // Actualizar el stock restante
+                        cantidad_en_stock: stockRestante,
                     };
                 });
 
