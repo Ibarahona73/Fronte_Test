@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
-import { useStockRealtimeUpdater } from '../hooks/useStockRealtimeUpdater';
 
 export function ClientView() {
     const { cart } = useCart(); // Obtener el carrito desde el contexto
@@ -123,23 +122,6 @@ export function ClientView() {
 
         setFilteredProductos(result);
     }, [filters, productos]);
-
-    useStockRealtimeUpdater((producto_id, nuevo_stock) => {
-        setProductos(prev =>
-            prev.map(prod =>
-                prod.id === producto_id
-                    ? { ...prod, cantidad_en_stock: nuevo_stock }
-                    : prod
-            )
-        );
-        setFilteredProductos(prev =>
-            prev.map(prod =>
-                prod.id === producto_id
-                    ? { ...prod, cantidad_en_stock: nuevo_stock }
-                    : prod
-            )
-        );
-    });
 
     // Mostrar mensaje de carga
     if (loading) return (
