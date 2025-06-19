@@ -1,10 +1,11 @@
 import { getProductos } from "../api/datos.api";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
+import useStockRealtimeUpdater from '../components/useStockRealtimeUpdater';
 
 export function ClientView() {
     const { cart } = useCart(); // Obtener el carrito desde el contexto
@@ -42,6 +43,31 @@ export function ClientView() {
         }
     };
 
+    // Callback memoizado para actualizaciones de stock en tiempo real
+    const stockUpdateCallback = useCallback((producto_id, nuevo_stock) => {
+        setStockVisibleData(prev => ({
+            ...prev,
+            [producto_id]: nuevo_stock
+        }));
+        
+        // Actualizar también los productos filtrados
+        setProductos(prev => 
+            prev.map(prod => 
+                prod.id === producto_id 
+                    ? { ...prod, cantidad_en_stock: nuevo_stock }
+                    : prod
+            )
+        );
+        setFilteredProductos(prev => 
+            prev.map(prod => 
+                prod.id === producto_id 
+                    ? { ...prod, cantidad_en_stock: nuevo_stock }
+                    : prod
+            )
+        );
+    }, []);
+
+    useStockRealtimeUpdater(stockUpdateCallback);
 
     // Cargar productos al montar o cuando cambia el carrito
     useEffect(() => {

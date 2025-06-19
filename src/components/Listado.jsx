@@ -2,10 +2,11 @@ import { getProductos } from "../api/datos.api";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import React from 'react';
 import { useCart } from './CartContext'; // Importamos useCart
 import Swal from 'sweetalert2'; // Importamos Swal para mensajes de alerta
+import useStockRealtimeUpdater from '../components/useStockRealtimeUpdater';
 
 // Componente para mostrar el listado de productos en inventario con filtros y acciones
 export function Listado() {
@@ -104,6 +105,28 @@ export function Listado() {
             );
         }
     }, [cart, productos]); // Depende de cart y productos para re-calcular
+
+    // Callback memoizado para actualizaciones de stock en tiempo real
+    const stockUpdateCallback = useCallback((producto_id, nuevo_stock) => {
+        if (productos.length === 0) return; // No hacer nada si no hay productos cargados
+
+        setProductos(prev =>
+            prev.map(prod =>
+                prod.id === producto_id
+                    ? { ...prod, stock_Frontend: nuevo_stock }
+                    : prod
+            )
+        );
+        setFilteredProductos(prev =>
+            prev.map(prod =>
+                prod.id === producto_id
+                    ? { ...prod, stock_Frontend: nuevo_stock }
+                    : prod
+            )
+        );
+    }, [productos.length]);
+
+    useStockRealtimeUpdater(stockUpdateCallback);
 
     const handleAddToCart = async (product) => {
         if (product.stock_Frontend <= 0) {

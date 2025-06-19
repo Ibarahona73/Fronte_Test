@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProducto, getProductos } from '../api/datos.api';
 import { Navigation } from '../components/Navigation';
 import { useCart } from '../components/CartContext';
 import Swal from 'sweetalert2';
+import useStockRealtimeUpdater from '../components/useStockRealtimeUpdater';
+import { usePusherDebug } from '../hooks/usePusherDebug';
 
 export function VisualProducto() {
     const { id } = useParams();
@@ -18,6 +20,9 @@ export function VisualProducto() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [stockVisible, setStockVisible] = useState(0);
     const [loadingStock, setLoadingStock] = useState(true);
+
+    // Hook de debug para Pusher
+    usePusherDebug();
 
     useEffect(() => {
         async function fetchProducto() {
@@ -58,7 +63,32 @@ export function VisualProducto() {
         fetchProducto();
     }, [id]);
 
-    
+    // Callback memoizado para actualizaciones de stock en tiempo real
+    const stockUpdateCallback = useCallback((producto_id, nuevo_stock) => {
+        console.log('VisualProducto - Actualización de stock recibida:', { producto_id, nuevo_stock, currentProductId: producto?.id });
+        if (producto && producto.id === producto_id) {
+            console.log('Actualizando stock visible de', stockVisible, 'a', nuevo_stock);
+            setStockVisible(nuevo_stock);
+        }
+    }, [producto, stockVisible]);
+
+    useStockRealtimeUpdater(stockUpdateCallback);
+
+    // Función para actualizar el stock manualmente
+    const updateStockManually = useCallback(async () => {
+        if (!id) return;
+        
+        try {
+            const stockResponse = await fetch(`https://tiendaonline-backend-yaoo.onrender.com/stockvisible/${id}/`);
+            if (stockResponse.ok) {
+                const stockData = await stockResponse.json();
+                console.log('Stock actualizado manualmente:', stockData);
+                setStockVisible(stockData);
+            }
+        } catch (error) {
+            console.error('Error al actualizar stock manualmente:', error);
+        }
+    }, [id]);
 
     useEffect(() => {
         async function fetchProductosRelacionados() {
@@ -107,6 +137,12 @@ export function VisualProducto() {
             await addToCart(producto, cantidad);
             setShowCartPopup(true);
             setTimeout(() => setShowCartPopup(false), 4000);
+            
+            // Actualizar el stock manualmente después de agregar al carrito
+            setTimeout(() => {
+                updateStockManually();
+            }, 1000); // Esperar 1 segundo para que el backend procese
+            
         } catch (error) {
             console.error('Error al agregar al carrito:', error);
             

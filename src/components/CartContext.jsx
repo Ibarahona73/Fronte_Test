@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getCarrito, addToCarrito, updateCarritoItem, removeFromCarrito, verificarCarrito, limpiarCarrito } from '../api/datos.api';
 import Swal from 'sweetalert2';
+import useStockRealtimeUpdater, { cleanupPusher } from '../components/useStockRealtimeUpdater';
 
 // Crear el contexto del carrito
 const CartContext = createContext();
@@ -27,11 +28,21 @@ export function CartProvider({ children }) {
         }
     }, [cart]);
 
+    // Callback memoizado para actualizaciones en tiempo real
+    const realtimeUpdateCallback = useCallback(() => {
+        console.log('CartContext - Recibida actualización en tiempo real, recargando carrito');
+        loadCart();
+    }, []);
+
+    useStockRealtimeUpdater(realtimeUpdateCallback);
+
     const loadCart = async () => {
         try {
             setLoading(true);
             setError(null);
             const carritoData = await getCarrito();
+            console.log('Carrito cargado:', carritoData);
+            
             // Calcular stock_Frontend para cada ítem del carrito
             const updatedCart = carritoData.map(item => ({
                 ...item,
@@ -84,8 +95,12 @@ export function CartProvider({ children }) {
                 throw new Error('Debes iniciar sesión para agregar productos al carrito');
             }
             
+            console.log('Agregando al carrito:', { product: product.id, quantity });
             await addToCarrito(product.id, quantity);
-            await loadCart(); // Recargar el carrito después de agregar
+            
+            // Recargar el carrito inmediatamente después de agregar
+            console.log('Recargando carrito después de agregar producto');
+            await loadCart();
             
             // No verificamos expiración inmediatamente después de agregar
             // La verificación se hará en el siguiente ciclo de useEffect
