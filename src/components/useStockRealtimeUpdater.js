@@ -23,15 +23,15 @@ const useStockRealtimeUpdater = (callback) => {
 
         const onConnected = () => {
           console.log('Pusher conectado exitosamente');
-          pusher.connection.off('connected', onConnected);
-          pusher.connection.off('error', onError);
+          pusher.connection.unbind('connected', onConnected);
+          pusher.connection.unbind('error', onError);
           resolve();
         };
 
         const onError = (err) => {
           console.error('Error de conexión Pusher:', err);
-          pusher.connection.off('connected', onConnected);
-          pusher.connection.off('error', onError);
+          pusher.connection.unbind('connected', onConnected);
+          pusher.connection.unbind('error', onError);
           reject(new Error('Connection failed: ' + err?.message));
         };
 
