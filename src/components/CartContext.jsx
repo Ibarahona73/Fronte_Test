@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getCarrito, addToCarrito, updateCarritoItem, removeFromCarrito, verificarCarrito, limpiarCarrito } from '../api/datos.api';
 import Swal from 'sweetalert2';
-import useStockRealtimeUpdater, { cleanupPusher } from '../components/useStockRealtimeUpdater';
+import useStockRealtimeUpdater from '../components/useStockRealtimeUpdater';
+
 
 // Crear el contexto del carrito
 const CartContext = createContext();

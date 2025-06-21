@@ -44,25 +44,32 @@ export function DataCliente() {
         // Mapeo de ejemplo - debe coincidir con tu base de datos
         const countryMap = {
             'Honduras': 1,
-            'Estados Unidos': 2,
-            'España': 3,
-            'México': 4,
-            'Guatemala': 5
+            'Guatemala': 2,
+            'El Salvador': 3,
+            'Nicaragua': 4,
+            'Costa Rica': 5,
+            'Estados Unidos': 6,
+            'México': 7,
+            'España': 8
         };
-        return countryMap[countryName] || null;
+        console.log('getCountryId - countryName:', countryName); // Debug
+        console.log('getCountryId - countryMap keys:', Object.keys(countryMap)); // Debug
+        const result = countryMap[countryName] || null;
+        console.log('getCountryId - result:', result); // Debug
+        return result;
     };
 
     // Mapeo de IDs a nombres
     const getCountryNameById = (countryId) => {
         const countryMap = {
             1: 'Honduras',
-            2: 'Estados Unidos',
-            3: 'España',
-            4: 'México',
-            5: 'Guatemala',
-            6: 'El Salvador',
-            7: 'Nicaragua',
-            8: 'Costa Rica'
+            2: 'Guatemala',
+            3: 'El Salvador',
+            4: 'Nicaragua',
+            5: 'Costa Rica',
+            6: 'Estados Unidos',
+            7: 'México',
+            8: 'España'
         };
         return countryMap[countryId] || '';
     };
@@ -104,15 +111,19 @@ export function DataCliente() {
         setIsLoading(true);
         
         try {
+            console.log('formData.country:', formData.country); // Debug
+            
             // Validación mejorada
             if (!formData.country) {
                 throw new Error('El país es requerido');
             }
             
             // Convertir nombre de país a ID para el backend
-            const countryId = getCountryNameById(formData.country);
+            const countryId = getCountryId(formData.country);
+            console.log('countryId obtenido:', countryId); // Debug
+            
             if (!countryId) {
-                throw new Error('País seleccionado no válido');
+                throw new Error(`País seleccionado no válido: ${formData.country}`);
             }
 
             // Preparar datos para el backend
@@ -126,6 +137,8 @@ export function DataCliente() {
                 zip: formData.zip,
                 telefono: formData.phone
             };
+            
+            console.log('Datos a enviar:', userData); // Para debug
 
             // Llamada a la API con manejo de errores mejorado
             const response = await getProfile(userData);

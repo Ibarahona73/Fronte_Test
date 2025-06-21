@@ -89,21 +89,23 @@ export function CrearInvPedido() {
                 return;
             }
 
-            // Construye el objeto del producto a enviar
-            const productData = {
-                nombre: formData.nombre.trim(),
-                precio: parseFloat(formData.precio),
-                cantidad_en_stock: parseInt(formData.cantidad_en_stock),
-                descripcion: formData.descripcion?.trim() || '',
-                categoria: formData.categoria,
-                tamaño: formData.tamaño,
-                colores: formData.colores,
-                imagen: previewImages[0].fileObject
-                
-            };
+            const dataToSend = new FormData();
+            dataToSend.append('nombre', formData.nombre.trim());
+            dataToSend.append('precio', parseFloat(formData.precio));
+            dataToSend.append('cantidad_en_stock', parseInt(formData.cantidad_en_stock));
+            dataToSend.append('desc_prod', formData.descripcion?.trim() || '');
+            dataToSend.append('categoria', formData.categoria);
+            dataToSend.append('tamano', formData.tamano);
+            dataToSend.append('colores', formData.colores);
+
+            // Asegúrate de que el backend espera el campo de imagen como 'imagen'
+            if (previewImages[0] && previewImages[0].fileObject) {
+                dataToSend.append('imagen', previewImages[0].fileObject);
+            }
+            
 
             // Llama a la API para crear el producto
-            await createProducto(productData);
+            await createProducto(dataToSend);
             toast.success("Producto creado exitosamente");
             reset(); // Limpia el formulario
             setPreviewImages([]); // Limpia las imágenes
@@ -375,14 +377,14 @@ export function CrearInvPedido() {
 
                         {/* Tamaño */}
                         <div className="col-md-6">
-                            <label htmlFor="tamaño" className="form-label fw-medium">
+                            <label htmlFor="tamano" className="form-label fw-medium">
                                 Tamaño *
                             </label>
                             <select
-                                id="tamaño"
-                                className={`form-select ${errors.tamaño ? 'is-invalid' : ''}`}
+                                id="tamano"
+                                className={`form-select ${errors.tamano ? 'is-invalid' : ''}`}
                                 disabled={isSubmitting}
-                                {...register("tamaño", { 
+                                {...register("tamano", { 
                                     required: "Este campo es requerido"
                                 })}
                             >
@@ -393,9 +395,9 @@ export function CrearInvPedido() {
                                 <option value="XL">XL</option>
                                 <option value="XXL">XXL</option>
                             </select>
-                            {errors.tamaño && (
+                            {errors.tamano && (
                                 <div className="invalid-feedback">
-                                    {errors.tamaño.message}
+                                    {errors.tamano.message}
                                 </div>
                             )}
                         </div>

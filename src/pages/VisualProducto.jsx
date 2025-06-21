@@ -65,12 +65,12 @@ export function VisualProducto() {
 
     // Callback memoizado para actualizaciones de stock en tiempo real
     const stockUpdateCallback = useCallback((producto_id, nuevo_stock) => {
-        console.log('VisualProducto - Actualización de stock recibida:', { producto_id, nuevo_stock, currentProductId: producto?.id });
-        if (producto && producto.id === producto_id) {
-            console.log('Actualizando stock visible de', stockVisible, 'a', nuevo_stock);
+        // Usamos el `id` de los parámetros de la URL, que es estable.
+        if (id && Number(producto_id) === Number(id)) {
+            console.log(`VisualProducto (${id}): Actualizando stock visible a ${nuevo_stock}`);
             setStockVisible(nuevo_stock);
         }
-    }, [producto, stockVisible]);
+    }, [id]); // Dependemos solo de `id`, que no cambia durante la vida del componente.
 
     useStockRealtimeUpdater(stockUpdateCallback);
 

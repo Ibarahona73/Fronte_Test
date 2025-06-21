@@ -32,7 +32,9 @@ const useStockRealtimeUpdater = (callback) => {
           console.error('Error de conexión Pusher:', err);
           pusher.connection.unbind('connected', onConnected);
           pusher.connection.unbind('error', onError);
-          reject(new Error('Connection failed: ' + err?.message));
+          // Mensaje de error más detallado
+          const errorMessage = err?.error?.data?.message || err?.error?.data?.code || 'Razón desconocida';
+          reject(new Error(`La conexión falló: ${errorMessage}`));
         };
 
         pusher.connection.bind('connected', onConnected);

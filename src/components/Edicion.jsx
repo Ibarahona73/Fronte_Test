@@ -98,7 +98,7 @@ export function Edicion() {
                 cantidad_en_stock: parseInt(formData.cantidad_en_stock),
                 descripcion: formData.descripcion?.trim() || '',
                 categoria: formData.categoria,
-                tamaño: formData.tamaño,
+                tamano: formData.tamano,
                 colores: formData.colores,
             };
 
@@ -264,11 +264,11 @@ export function Edicion() {
 
                         {/* Tamaño */}
                         <div className="col-md-6">
-                            <label htmlFor="tamaño" className="form-label fw-medium">Tamaño *</label>
+                            <label htmlFor="tamano" className="form-label fw-medium">Tamaño *</label>
                             <select
-                                id="tamaño"
-                                className={`form-select ${errors.tamaño ? 'is-invalid' : ''}`}
-                                {...register("tamaño", { required: "Este campo es requerido" })}
+                                id="tamano"
+                                className={`form-select ${errors.tamano ? 'is-invalid' : ''}`}
+                                {...register("tamano", { required: "Este campo es requerido" })}
                                 disabled={isSubmitting}
                             >
                                 <option value="">Selecciona un tamaño</option>
@@ -278,7 +278,7 @@ export function Edicion() {
                                 <option value="XL">XL</option>
                                 <option value="XXL">XXL</option>
                             </select>
-                            {errors.tamaño && <div className="invalid-feedback">{errors.tamaño.message}</div>}
+                            {errors.tamano && <div className="invalid-feedback">{errors.tamano.message}</div>}
                         </div>
                     </div>
 

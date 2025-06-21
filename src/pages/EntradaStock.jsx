@@ -100,9 +100,9 @@ export function EntradaStock() {
                     <form onSubmit={handleSubmit}>
                         {/* Tamaño del producto (solo lectura) */}
                         <div className="mb-3">
-                            <label htmlFor="tamaño" className="form-label">Tamaño</label>
-                            <select id="tamaño" className="form-select" disabled>
-                                <option>{producto.tamaño}</option>
+                            <label htmlFor="tamano" className="form-label">Tamaño</label>
+                            <select id="tamano" className="form-select" disabled>
+                                <option>{producto.tamano}</option>
                             </select>
                         </div>
 

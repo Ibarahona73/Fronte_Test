@@ -75,31 +75,6 @@ api.interceptors.response.use(
  */
 
 /**
- * Crea un nuevo producto
- * @param {FormData} formData - Datos del producto (puede incluir imagen)
- * @returns {Promise} Promesa con la respuesta del servidor
- */
-export const createProducto = async (formData) => {
-  try {
-      console.log("Datos enviados al backend:", formData);
-      const response = await api.post('/api/v1/productos/', formData, {
-          headers: {
-              'Content-Type': 'multipart/form-data', // Para enviar archivos
-              ...getAuthHeaders() // Agrega headers de autenticación
-          }
-      });
-      return response.data;
-   }  catch (error) {
-    console.error('Full error response:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        headers: error.response?.headers
-    });
-    throw error.response?.data || error;
-  }
-};
-
-/**
  * Obtiene todos los productos
  * @returns {Promise} Lista de productos
  */
@@ -126,6 +101,34 @@ export const getProducto = (id) => {
       });
 }
 
+
+/**
+ * Crea un nuevo producto
+ * @param {FormData} formData - Datos del producto (puede incluir imagen)
+ * @returns {Promise} Promesa con la respuesta del servidor
+ */
+export const createProducto = async (formData) => {
+    try {
+        console.log("Datos enviados al backend:", formData);
+        const response = await api.post('/api/v1/productos/', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data', // Para enviar archivos
+                ...getAuthHeaders() // Agrega headers de autenticación
+
+            }
+        });
+        return response.data;
+     }  catch (error) {
+      console.error('Full error response:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: error.response?.headers
+      });
+      throw error.response?.data || error;
+    }
+  };
+
+
 /**
  * Actualiza un producto existente
  * @param {number} id - ID del producto a actualizar
@@ -135,23 +138,28 @@ export const getProducto = (id) => {
 export const updateProducto = async (id, data) => {
     try {
         let payload = data;
-        let contentType = 'application/json';
+        const headers = getAuthHeaders();
+         // Obtenemos solo el header de autorización
 
-        // Si hay imagen, usa FormData
+        // Si hay una imagen, creamos FormData y dejamos que Axios maneje el Content-Type
         if (data.imagen) {
             payload = new FormData();
              for (const key in data) {
-                payload.append(key, data[key]);
+                if (data[key] !== null && data[key] !== undefined) {
+                    payload.append(key, data[key]);
+                }
             }
-            contentType = 'multipart/form-data';
+        } else {
+            // Si no hay imagen, es una petición JSON
+            //
+            console.log(headers)
         }
 
         const response = await api.put(`/api/v1/productos/${id}/`, payload, {
             headers: {
-                'Content-Type': contentType,
-                ...getAuthHeaders()
-            },
-        });
+                'Content-Type': 'multipart/form-data', // Para enviar archivos
+                ...getAuthHeaders() // Agrega headers de autenticación
+    }});
 
         return response.data;
     } catch (error) {
@@ -361,8 +369,7 @@ function getAuthHeaders() {
         throw new Error('No hay token de autenticación');
     }
     return {
-        'Authorization': `Token ${token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Token ${token}`
     };
 }
 

@@ -16,7 +16,7 @@ export function Listado() {
     const [error, setError] = useState(null); // Estado de error
     const [filters, setFilters] = useState({
         categoria: '',
-        tamaño: '',
+        tamano: '',
         color: '',
     });
 
@@ -69,8 +69,8 @@ export function Listado() {
             result = result.filter((p) => p.categoria === filters.categoria);
         }
 
-        if (filters.tamaño) {
-            result = result.filter((p) => p.tamaño === filters.tamaño);
+        if (filters.tamano) {
+            result = result.filter((p) => p.tamano === filters.tamano);
         }
 
         if (filters.color) {
@@ -222,9 +222,9 @@ export function Listado() {
                             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                                 <input
                                     type="radio"
-                                    name="tamaño"
-                                    checked={filters.tamaño === size}
-                                    onChange={() => setFilters({ ...filters, tamaño: size })}
+                                    name="tamano"
+                                    checked={filters.tamano === size}
+                                    onChange={() => setFilters({ ...filters, tamano: size })}
                                     style={{ marginRight: '8px' }}
                                 />
                                 {size}
@@ -232,7 +232,7 @@ export function Listado() {
                         </div>
                     ))}
                     <button
-                        onClick={() => setFilters({ ...filters, tamaño: '' })}
+                        onClick={() => setFilters({ ...filters, tamano: '' })}
                         style={{
                             background: 'none',
                             border: 'none',

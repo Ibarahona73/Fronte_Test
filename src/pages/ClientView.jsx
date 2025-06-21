@@ -16,7 +16,7 @@ export function ClientView() {
     const [stockVisibleData, setStockVisibleData] = useState({});
     const [filters, setFilters] = useState({
         categoria: '',
-        tamaño: '',
+        tamano: '',
         color: '',
     });
 
@@ -102,7 +102,7 @@ export function ClientView() {
 
                     return {
                         ...producto,
-                        tamaño: sizeMap[producto.tamaño] || producto.tamaño,
+                        tamano: sizeMap[producto.tamano] || producto.tamano,
                         imagen: producto.image 
                             ? `data:image/jpeg;base64,${producto.image}`
                             : null,
@@ -128,7 +128,7 @@ export function ClientView() {
     // Obtener valores únicos para los filtros
     const uniqueColors = [...new Set(productos.map(p => p.colores).filter(Boolean))];
     const uniqueCategories = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
-    const uniqueSizes = [...new Set(productos.map(p => p.tamaño).filter(Boolean))];
+    const uniqueSizes = [...new Set(productos.map(p => p.tamano).filter(Boolean))];
 
     // Aplicar filtros cada vez que cambian los filtros o los productos
     useEffect(() => {
@@ -138,8 +138,8 @@ export function ClientView() {
             result = result.filter(p => p.categoria === filters.categoria);
         }
 
-        if (filters.tamaño) {
-            result = result.filter(p => p.tamaño === filters.tamaño);
+        if (filters.tamano) {
+            result = result.filter(p => p.tamano === filters.tamano);
         }
 
         if (filters.color) {
@@ -231,9 +231,9 @@ export function ClientView() {
                             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                                 <input
                                     type="radio"
-                                    name="tamaño"
-                                    checked={filters.tamaño === size}
-                                    onChange={() => setFilters({...filters, tamaño: size})}
+                                    name="tamano"
+                                    checked={filters.tamano === size}
+                                    onChange={() => setFilters({...filters, tamano: size})}
                                     style={{ marginRight: '8px' }}
                                 />
                                 {size} ({Object.keys(sizeMap).find(key => sizeMap[key] === size)})
@@ -241,7 +241,7 @@ export function ClientView() {
                         </div>
                     ))}
                     <button 
-                        onClick={() => setFilters({...filters, tamaño: ''})}
+                        onClick={() => setFilters({...filters, tamano: ''})}
                         style={{
                             background: 'none',
                             border: 'none',

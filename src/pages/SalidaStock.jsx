@@ -98,7 +98,7 @@ export function SalidaStock() {
                                 <strong>Stock actual:</strong> {producto.cantidad_en_stock}
                             </p>
                             <p className="card-text">
-                                <strong>Tamaño:</strong> {producto.tamaño}
+                                <strong>Tamaño:</strong> {producto.tamano}
                             </p>
                         </div>
                     </div>

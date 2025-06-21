@@ -2,19 +2,15 @@ import Pusher from 'pusher-js';
 
 // Configuración de Pusher
 export const PUSHER_CONFIG = {
-  key: 'qZLZMg.GvMK6Q',
+  key: '4dbce86002977a403278',
   cluster: 'us2',
-  encrypted: true,
-  authEndpoint: '/pusher/auth/',
-  auth: {
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken')
-    }
-  }
+  forceTLS: true,
+  enabledTransports: ['ws', 'wss', 'xhr_streaming', 'xhr_polling']
 };
 
 // Helper para obtener cookies
 function getCookie(name) {
+  if (typeof document === 'undefined') return null;
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();
@@ -27,9 +23,8 @@ export const getPusherInstance = () => {
   if (!globalPusherInstance) {
     globalPusherInstance = new Pusher(PUSHER_CONFIG.key, {
       cluster: PUSHER_CONFIG.cluster,
-      encrypted: PUSHER_CONFIG.encrypted,
-      authEndpoint: PUSHER_CONFIG.authEndpoint,
-      auth: PUSHER_CONFIG.auth
+      forceTLS: PUSHER_CONFIG.forceTLS,
+      enabledTransports: PUSHER_CONFIG.enabledTransports
     });
   }
   return globalPusherInstance;
