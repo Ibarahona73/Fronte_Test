@@ -7,8 +7,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import useStockRealtimeUpdater from '../components/useStockRealtimeUpdater';
 import { ProductCarousel } from '../components/ProductCarousel';
-import "slick-carousel/slick/slick.css"; 
-import "slick-carousel/slick/slick-theme.css";
 import useWindowSize from "../components/useWindowSize";
 import { useAuth } from "../components/AuthenticationContext";
 
