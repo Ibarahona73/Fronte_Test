@@ -174,53 +174,74 @@ export function VisualProducto() {
 
     return (
         <div>
-            <div style={{ padding: '20px', display: 'flex', gap: '20px' }}>
-                <div style={{ flex: 1 }}>
-                    <img
-                        src={producto.image ? `data:image/jpeg;base64,${producto.image}` : 'https://via.placeholder.com/300'}
-                        alt={producto.nombre}
-                        style={{ width: '100%', borderRadius: '5px' }}
-                    />
+            <div style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
+                <div style={{ flex: '1 1 55%', maxWidth: '600px' }}>
+                    <div style={{
+                        padding: '10px',
+                        borderRadius: '10px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        backgroundColor: '#fff'
+                    }}>
+                        <img
+                            src={producto.image ? `data:image/jpeg;base64,${producto.image}` : 'https://via.placeholder.com/600'}
+                            alt={producto.nombre}
+                            style={{ width: '100%', borderRadius: '8px' }}
+                        />
+                    </div>
                 </div>
-                <div style={{ flex: 1, border: '1px solid #ddd', padding: '20px', borderRadius: '5px' }}>
-                    <h1>{producto.nombre}</h1>
-                    <h2 style={{ color: '#3498db' }}>
+                <div style={{ flex: '1 1 45%', border: '1px solid #e0e0e0', padding: '30px', borderRadius: '10px', backgroundColor: '#f9f9f9' }}>
+                    <h1 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '2.2rem', marginBottom: '10px' }}>{producto.nombre}</h1>
+                    <h2 style={{ fontFamily: 'Poppins, sans-serif', color: '#007bff', fontSize: '1.8rem', marginBottom: '20px' }}>
                         ${producto.precio ? Number(producto.precio).toFixed(2) : '0.00'}
                     </h2>
-                    <p>{producto.descripcion || 'No hay descripción disponible.'}</p>
-                    {loadingStock ? (
-                        <p><strong>Stock disponible:</strong> Cargando...</p>
-                    ) : (
-                        <p><strong>Stock disponible:</strong> {stockVisible > 0 ? stockVisible : 'Agotado'}</p>
-                    )}
-                    <input
-                        type="number"
-                        value={cantidad}
-                        onChange={handleCantidadChange}
-                        min="1"
-                        max={stockVisible}
-                        style={{
-                            width: '60px',
-                            padding: '5px',
-                            border: '1px solid #ddd',
-                            borderRadius: '5px',
-                        }}
-                        disabled={stockVisible === 0 || loadingStock}
-                    />
-                    <button
-                        onClick={handleAddToCart}
-                        style={{
-                            backgroundColor: stockVisible > 0 ? '#3498db' : '#ccc',
-                            color: '#fff',
-                            padding: '10px 20px',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: stockVisible > 0 ? 'pointer' : 'not-allowed',
-                        }}
-                        disabled={stockVisible === 0 || loadingStock || isSubmitting}
-                    >
-                        {isSubmitting ? 'Procesando...' : 'Añadir al carrito'}
-                    </button>
+                    <p style={{ fontFamily: 'Poppins, sans-serif', color: '#555', lineHeight: '1.6', marginBottom: '25px' }}>
+                        {producto.descripcion || 'No hay descripción disponible.'}
+                    </p>
+                    
+                    <div style={{ borderTop: '1px solid #e0e0e0', paddingTop: '20px' }}>
+                        {loadingStock ? (
+                            <p style={{ fontFamily: 'Poppins, sans-serif' }}><strong>Stock disponible:</strong> Cargando...</p>
+                        ) : (
+                            <p style={{ fontFamily: 'Poppins, sans-serif' }}><strong>Stock disponible:</strong> {stockVisible > 0 ? stockVisible : 'Agotado'}</p>
+                        )}
+                        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '15px' }}>
+                            <input
+                                type="number"
+                                value={cantidad}
+                                onChange={handleCantidadChange}
+                                min="1"
+                                max={stockVisible}
+                                style={{
+                                    width: '70px',
+                                    padding: '8px',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '5px',
+                                    textAlign: 'center',
+                                    fontSize: '1rem',
+                                    fontFamily: 'Poppins, sans-serif'
+                                }}
+                                disabled={stockVisible === 0 || loadingStock}
+                            />
+                            <button
+                                onClick={handleAddToCart}
+                                style={{
+                                    backgroundColor: stockVisible > 0 ? '#007bff' : '#ccc',
+                                    color: '#fff',
+                                    padding: '12px 25px',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: stockVisible > 0 ? 'pointer' : 'not-allowed',
+                                    fontSize: '1rem',
+                                    fontFamily: 'Poppins, sans-serif',
+                                    fontWeight: 'bold',
+                                    flex: 1
+                                }}
+                                disabled={stockVisible === 0 || loadingStock || isSubmitting}
+                            >
+                                {isSubmitting ? 'Procesando...' : 'Añadir al carrito'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 

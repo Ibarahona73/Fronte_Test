@@ -13,6 +13,11 @@ export function Edicion() {
     const [previewImages, setPreviewImages] = useState([]); // Estado para la imagen de vista previa
     const [isSubmitting, setIsSubmitting] = useState(false); // Estado para evitar doble envío
 
+    // Registra el campo de imágenes para la validación
+    useEffect(() => {
+        register("imagenes", { required: "Este campo es requerido" });
+    }, [register]);
+
     // Carga los datos del producto al montar o cuando cambia el id
     useEffect(() => {
         async function fetchProducto() {
@@ -20,8 +25,13 @@ export function Edicion() {
                 const producto = await getProducto(id); // Obtiene el producto de la API
                 reset(producto); // Llena el formulario con los datos del producto
                 if (producto.imagen_url) {
-                    // Si hay imagen, la muestra en la vista previa
-                    setPreviewImages([{ url: producto.imagen_url, name: "Imagen actual" }]);
+                    // Si hay imagen, la muestra en la vista previa y actualiza el valor del form
+                    const imageArray = [{ url: producto.imagen_url, name: "Imagen actual" }];
+                    setPreviewImages(imageArray);
+                    setValue("imagenes", imageArray);
+                } else {
+                    // Si no hay imagen, asegura que el valor del form esté vacío
+                    setValue("imagenes", []);
                 }
             } catch (error) {
                 console.error("Error al cargar el producto:", error);
@@ -30,7 +40,7 @@ export function Edicion() {
             }
         }
         fetchProducto();
-    }, [id, reset, navigate]); // Dependencias correctas
+    }, [id, reset, navigate, setValue]); // Dependencias correctas
 
     // Maneja el cambio de imagen seleccionada
     const handleImageChange = async (e) => {
@@ -68,7 +78,7 @@ export function Edicion() {
     // Elimina la imagen de la vista previa
     const removeImage = () => {
         setPreviewImages([]);
-        setValue("imagenes", []);
+        setValue("imagenes", [], { shouldValidate: true });
     };
 
     // Maneja la eliminación del producto
@@ -136,6 +146,9 @@ export function Edicion() {
                                 accept="image/*"
                                 onChange={handleImageChange}
                                 disabled={isSubmitting}
+                                
+                                        
+                                        
                             />
                             <label 
                                 htmlFor="imagen-upload" 
@@ -147,6 +160,8 @@ export function Edicion() {
                                     <small className="text-muted">Formatos: JPG, PNG (Máx. 5MB)</small>
                                 </div>
                             </label>
+                            {/* Muestra el error de validación para la imagen */}
+                            {errors.imagenes && <div className="text-danger mt-2 small">{errors.imagenes.message}</div>}
                         </div>
                     </div>
 
@@ -228,7 +243,7 @@ export function Edicion() {
                                 id="cantidad_en_stock"
                                 className={`form-control ${errors.cantidad_en_stock ? 'is-invalid' : ''}`}
                                 {...register("cantidad_en_stock", { required: "Este campo es requerido" })}
-                                disabled={isSubmitting}
+                                readOnly
                             />
                             {errors.cantidad_en_stock && <div className="invalid-feedback">{errors.cantidad_en_stock.message}</div>}
                         </div>
