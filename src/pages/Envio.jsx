@@ -117,12 +117,20 @@ export function Envio() {
                                 {
                                     amount: {
                                         value: total.toFixed(2),
+                                        currency_code: "USD",
+                                        breakdown: {
+                                            item_total: { value: subtotal.toFixed(2), currency_code: "USD" },
+                                            tax_total: { value: isv.toFixed(2), currency_code: "USD" },
+                                            shipping: { value: selectedShipping.toFixed(2), currency_code: "USD" }
+                                        }
                                     },
-                                    description: resumen.length === 1
-                                        ? resumen[0].nombre
-                                        : resumen.map(item => item.nombre).join(', '),
-                                },
-                            ],
+                                    items: resumen.map(item => ({
+                                        name: item.nombre,
+                                        unit_amount: { value: Number(item.precio).toFixed(2), currency_code: "USD" },
+                                        quantity: item.cantidad.toString(),
+                                    }))
+                                }
+                            ]
                         });
                     }}
                     onApprove={async (data, actions) => {
