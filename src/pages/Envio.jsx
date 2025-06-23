@@ -152,7 +152,7 @@ export function Envio() {
                             
                             // Crear objeto de pedido
                             const pedidoData = {
-                                usuario_id: usuario.id,
+                                usuario_id: usuario.id || usuario.usuario,
                                 company: clientInfo.company || '',
                                 direccion: clientInfo.address || '',
                                 pais: clientInfo.country || '',
@@ -169,7 +169,7 @@ export function Envio() {
                                 id_pedido: pedidoId,
                                 productos: resumen.map(item => {
                                     // Debug: Ver la estructura exacta del item
-                                    console.log('usuario:', usuario.id);
+                                    console.log('usuario:', usuario.id || usuario.usuario);
                                     console.log('Item del resumen:', item);
                                     console.log('Item.id:', item.id);
                                     console.log('Tipo de item.id:', typeof item.id);
