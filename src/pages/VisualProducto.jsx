@@ -195,7 +195,7 @@ export function VisualProducto() {
                         ${producto.precio ? Number(producto.precio).toFixed(2) : '0.00'}
                     </h2>
                     <p style={{ fontFamily: 'Poppins, sans-serif', color: '#555', lineHeight: '1.6', marginBottom: '25px' }}>
-                        {producto.descripcion || 'No hay descripción disponible.'}
+                        {producto.desc_prod || 'No hay descripción disponible.'}
                     </p>
                     
                     <div style={{ borderTop: '1px solid #e0e0e0', paddingTop: '20px' }}>
