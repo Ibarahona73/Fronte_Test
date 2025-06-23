@@ -115,12 +115,15 @@ export function Navigation() {
             zIndex: 1020 // z-index alto para que esté sobre otros elementos
         }}>
             <div className="container-fluid">
-                {/* BOTÓN DE INICIO */}
-                <Link className="navbar-brand text-white" to="/" style={{ 
-                    fontSize: '1.1rem',
-                    marginLeft: '20px',
-                    fontFamily: 'Poppins, sans-serif'
-                }}>Inicio</Link>
+                {/* BOTÓN DE INICIO CON LOGO Y TEXTO */}
+                <Link className="navbar-brand text-white d-flex align-items-center" to="/" style={{ marginLeft: '20px' }}>
+                <img
+                    src="/logosinfondo.png"
+                    alt="Logo UTH"
+                    style={{ height: '50px', marginRight: '30px', background: 'transparent' }}
+                />
+                    <span style={{ fontSize: '1.1rem', fontFamily: 'Poppins, sans-serif' }}>Inicio</span>
+                </Link>
 
                 {/* ENLACES DE ADMINISTRACIÓN */}
                 {/* Solo se muestran para usuarios con permisos de staff o superuser */}

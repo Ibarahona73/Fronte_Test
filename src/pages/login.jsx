@@ -91,14 +91,14 @@ export function Login() {
         {/* Logo de UTH Florida */}
         <img
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTq2pwE1N4DauKGIcLHrcj30esYCiIxXkJHaA&s"
-          alt="UTH Florida"
-          style={{ width: 120, marginBottom: 20 }}
+          alt="UTH Florida University"
+          style={{ width: 350, height: 300,marginBottom: 20 }}
         />
         {/* Nombre de la universidad */}
-        <h1 style={{ fontWeight: 'bold', marginBottom: 10 }}>UTH FLORIDA</h1>
+        <h1 style={{ fontWeight: 'bold', marginBottom: 10 }}>UTH FLORIDA UNIVERSITY</h1>
         {/* Slogan */}
         <p style={{ textAlign: 'center', maxWidth: 200 }}>
-          Un clic a distancia
+          Un click a distancia
         </p>
       </div>
 
