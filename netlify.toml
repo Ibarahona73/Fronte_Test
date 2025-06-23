@@ -1,3 +1,24 @@
+# CONFIGURACIÓN DE DESPLIEGUE EN NETLIFY
+# 
+# Este archivo contiene la configuración para el despliegue automático en Netlify.
+# Netlify es una plataforma de hosting que permite desplegar aplicaciones web
+# directamente desde un repositorio Git.
+# 
+# Configuración actual:
+# - publish: Directorio que contiene los archivos a desplegar
+# - command: Comando que se ejecuta durante el build en Netlify
+
 [build]
+# Directorio que contiene los archivos estáticos listos para producción
+# Vite genera los archivos optimizados en la carpeta "dist"
 publish = "dist"
+
+# Comando que se ejecuta durante el proceso de build en Netlify
+# 1. npm install: Instala todas las dependencias del proyecto
+# 2. npm run build: Ejecuta el script de build definido en package.json
 command = "npm install && npm run build"
+
+# Nota: Se pueden agregar más configuraciones aquí como:
+# - [build.environment]: Variables de entorno para el build
+# - [[redirects]]: Reglas de redirección para SPA (Single Page Application)
+# - [[headers]]: Headers HTTP personalizados

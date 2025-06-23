@@ -1,42 +1,103 @@
+/**
+ * COMPONENTE DE NAVEGACIÓN PRINCIPAL
+ * 
+ * Este componente representa la barra de navegación principal de la aplicación.
+ * Proporciona navegación entre las diferentes secciones y funcionalidades:
+ * - Navegación principal (Inicio, Inventario, Crear Producto)
+ * - Acceso al carrito de compras con contador de productos
+ * - Menú de usuario con opciones de autenticación
+ * - Enlaces administrativos para usuarios con permisos
+ * 
+ * Características:
+ * - Diseño responsive con Bootstrap
+ * - Dropdown para opciones de usuario
+ * - Contador de productos en el carrito
+ * - Control de acceso basado en roles
+ * - Navegación programática con React Router
+ */
+
+// Importaciones de React y hooks necesarios
 import React, { useState, useRef, useEffect } from 'react';
+
+// Importaciones de React Router para navegación
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+
+// Importaciones de contextos para acceder a datos globales
 import { useCart } from './CartContext';
 import { useAuth } from '../components/AuthenticationContext';
 
-// Componente de barra de navegación principal
+/**
+ * COMPONENTE DE BARRA DE NAVEGACIÓN PRINCIPAL
+ * 
+ * Este componente renderiza la barra de navegación que aparece en todas las páginas.
+ * Maneja la navegación, el estado del carrito y las opciones de usuario.
+ * 
+ * @returns {JSX.Element} - La barra de navegación completa
+ */
 export function Navigation() {
-    const { cart } = useCart(); // Obtiene el carrito desde el contexto global
-    const location = useLocation(); // Hook para obtener la ruta actual
-    const navigate = useNavigate(); // Hook para navegar programáticamente
-    const { user, logout } = useAuth(); // Obtiene el usuario y la función logout del contexto
+    // Obtener datos del carrito desde el contexto global
+    const { cart } = useCart();
+    
+    // Hook para obtener la ruta actual
+    const location = useLocation();
+    
+    // Hook para navegar programáticamente
+    const navigate = useNavigate();
+    
+    // Obtener el usuario y la función logout del contexto de autenticación
+    const { user, logout } = useAuth();
 
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Estado para controlar el dropdown
-    const dropdownRef = useRef(null); // Referencia para el contenedor del dropdown
+    // Estado para controlar la visibilidad del dropdown de usuario
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    
+    // Referencia para el contenedor del dropdown (para cerrar al hacer clic fuera)
+    const dropdownRef = useRef(null);
 
-    // Calcula el total de productos en el carrito
+    /**
+     * CALCULAR TOTAL DE PRODUCTOS EN EL CARRITO
+     * 
+     * Suma la cantidad de todos los productos en el carrito
+     * para mostrar el contador en el ícono del carrito.
+     */
     const totalItems = cart.reduce((total, item) => total + item.cantidad_prod, 0);
 
-    // Función para alternar la visibilidad del dropdown
+    /**
+     * ALTERNAR VISIBILIDAD DEL DROPDOWN
+     * 
+     * Función para abrir/cerrar el menú desplegable del usuario.
+     */
     const toggleDropdown = () => {
         setIsDropdownOpen(prevState => !prevState);
     };
 
-    // Función para cerrar sesión
+    /**
+     * MANEJAR CIERRE DE SESIÓN
+     * 
+     * Función que se ejecuta cuando el usuario hace logout.
+     * Limpia la sesión y redirige al inicio.
+     */
     const handleLogout = () => {
-        logout();
-        setIsDropdownOpen(false); // Cierra el dropdown después de cerrar sesión
-        navigate('/'); // Redirige al inicio después de cerrar sesión
+        logout(); // Limpiar datos de sesión
+        setIsDropdownOpen(false); // Cerrar el dropdown
+        navigate('/'); // Redirigir al inicio
     };
 
-    // Efecto para cerrar el dropdown cuando se hace clic fuera de él
+    /**
+     * EFECTO PARA CERRAR DROPDOWN AL HACER CLIC FUERA
+     * 
+     * Este useEffect agrega un listener para detectar clics fuera del dropdown
+     * y cerrarlo automáticamente.
+     */
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsDropdownOpen(false);
             }
         }
+        
         // Adjuntar el listener al montar el componente
         document.addEventListener("mousedown", handleClickOutside);
+        
         // Limpiar el listener al desmontar el componente
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
@@ -45,23 +106,24 @@ export function Navigation() {
 
     return (
         <nav className="navbar navbar-expand-lg" style={{ 
-            backgroundColor: '#a21d22',
+            backgroundColor: '#a21d22', // Color rojo corporativo
             padding: '10px 0',
             minHeight: '60px',
             fontFamily: 'Poppins, sans-serif',
-            position: 'sticky',
+            position: 'sticky', // Barra fija en la parte superior
             top: 0,
             zIndex: 1020 // z-index alto para que esté sobre otros elementos
         }}>
             <div className="container-fluid">
-                {/* Botón de inicio a la izquierda */}
+                {/* BOTÓN DE INICIO */}
                 <Link className="navbar-brand text-white" to="/" style={{ 
                     fontSize: '1.1rem',
                     marginLeft: '20px',
                     fontFamily: 'Poppins, sans-serif'
                 }}>Inicio</Link>
 
-                {/* Enlaces de administración para usuarios admin o superuser */}
+                {/* ENLACES DE ADMINISTRACIÓN */}
+                {/* Solo se muestran para usuarios con permisos de staff o superuser */}
                 {(user?.is_staff || user?.is_superuser) && (
                     <>
                         <Link className="navbar-brand text-white" to="/admin/inventario" style={{ 
@@ -77,8 +139,10 @@ export function Navigation() {
                     </>
                 )}
 
+                {/* CONTENEDOR DE ELEMENTOS DERECHOS */}
                 <div className="d-flex align-items-center" style={{ marginLeft: 'auto', marginRight: '20px' }}>
-                    {/* Ícono del carrito */}
+                    
+                    {/* ÍCONO DEL CARRITO */}
                     <Link className="nav-link text-white" to="/carrito" style={{ position: 'relative', marginRight: '15px' }}>
                         <i className="bi bi-cart" style={{ 
                             fontSize: '1.8rem',
@@ -91,7 +155,9 @@ export function Navigation() {
                             width: '40px',
                             height: '40px'
                         }}></i>
-                        {/* Muestra la cantidad de productos si hay al menos uno */}
+                        
+                        {/* CONTADOR DE PRODUCTOS EN EL CARRITO */}
+                        {/* Solo se muestra si hay al menos un producto */}
                         {totalItems > 0 && (
                             <span style={{
                                 position: 'absolute',
@@ -108,10 +174,10 @@ export function Navigation() {
                         )}
                     </Link>
 
-                    {/* Ícono de usuario y dropdown */}
+                    {/* ÍCONO DE USUARIO Y DROPDOWN */}
                     <div style={{ position: 'relative' }} ref={dropdownRef}>
                         <button
-                            className="nav-link" // Usamos button para manejar el click
+                            className="nav-link"
                             onClick={toggleDropdown} // Llama a toggleDropdown al hacer click
                             style={{
                                 background: 'none',
@@ -137,7 +203,7 @@ export function Navigation() {
                             </i>
                         </button>
 
-                        {/* Menú desplegable */}
+                        {/* MENÚ DESPLEGABLE */}
                         {isDropdownOpen && (
                             <div
                                 style={{
@@ -157,7 +223,7 @@ export function Navigation() {
                                 }}
                             >
                                 {!user ? (
-                                    // Opciones si no está loggeado
+                                    // OPCIONES SI NO ESTÁ LOGEADO
                                     <Link
                                         to="/login"
                                         onClick={() => setIsDropdownOpen(false)} // Cierra dropdown al hacer click
@@ -172,10 +238,10 @@ export function Navigation() {
                                         Iniciar Sesión
                                     </Link>
                                 ) : (
-                                    // Opciones si está loggeado
+                                    // OPCIONES SI ESTÁ LOGEADO
                                     <>
                                      <Link
-                                            to={user?.is_staff ? "/admin/history" : "/history"} // Enlace condicional
+                                            to={user?.is_staff ? "/admin/history" : "/history"} // Enlace condicional según rol
                                             onClick={() => setIsDropdownOpen(false)} // Cierra dropdown al hacer click
                                             style={{
                                                 padding: '8px 15px',
